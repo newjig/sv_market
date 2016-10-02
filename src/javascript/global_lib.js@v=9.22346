@@ -1,0 +1,97 @@
+if (typeof global_lib == 'undefined') {
+    var global_lib = {
+        configs: function () {
+
+        }
+    };
+    window.global_lib = global_lib;
+    global_lib.configs();
+}
+
+global_lib.notice_post = function(){
+    jQuery.ajax({
+        type: "POST",
+        url: "ajax.php@act=item&code=showNoticePost",
+        data: "",
+        dataType: "json",
+        success: function(json){
+            pay_popup(json.temp);
+        }
+    });
+};
+
+global_lib.show_f_reg = function(){
+    if (jQuery('#form_reg').css('display') == 'none'){
+        jQuery('#form_reg').show();
+    } else {
+        if (global_lib.validate_f_reg() == false) return;
+
+        var fullname = jQuery('#name').val();
+        var mobile = jQuery('#mobile').val();
+        var address = jQuery('#address').val();
+        var email = jQuery('#email').val();
+
+        jQuery('#loadingTitleDiv').show();
+        jQuery.ajax({
+            type: "POST",
+            url: "ajax.php@act=item&code=RegRequestService",
+            data: {fullname:fullname, mobile:mobile, address:address, email:email},
+            dataType: "json",
+            success: function(json){
+                jQuery('#loadingTitleDiv').hide();
+                if(json['msg']){
+                    alert(json['msg']);
+                    jQuery('#error').html(json['msg']).show();
+                } else {
+                    alert('Đăng ký thành công.');
+                    location.reload();
+                }
+            }
+        });
+    }
+};
+
+global_lib.validate_f_reg = function(){
+    var name = jQuery('#name').val();
+    var mobile = jQuery('#mobile').val();
+    var address = jQuery('#address').val();
+    var email = jQuery('#email').val();
+
+    var show_err = jQuery('#error');
+    if(!name){
+        show_err.html('* Bạn phải nhập họ tên.').show();
+        return false;
+    }
+    else if (!mobile){
+        show_err.html('* Bạn phải nhập số điện thoại.').show();
+        return false;
+    }
+    else if (!global_lib.IsNumeric(mobile) || (mobile.length < 10 || mobile.length > 11)) {
+        show_err.html('* Điện thoại không đúng định dạng.').show();
+        return false;
+    }
+    else if (!address){
+        show_err.html('* Bạn phải nhập địa chỉ.').show();
+        return false;
+    }
+    else if (!email) {
+        show_err.html('* Bạn phải nhập email.').show();
+        return false;
+    }
+    else if (!global_lib. is_email(email)) {
+        show_err.html('* Email không đúng định dạng.').show();
+        return false;
+    }
+    else
+        show_err.hide();
+
+    return true;
+};
+
+global_lib.IsNumeric = function(input){return (input - 0) == input && (input+'').replace(/^\s+|\s+$/g, "").length > 0;}
+global_lib. is_email = function(str) { return (/[a-z-_0-9\.]+@[a-z-_=>0-9\.]+\.[a-z]{2,3}$/i).test(str)};
+global_lib.number_format = function(className){
+    jQuery('.' + className).keyup(function () {
+        jQuery(this).val(rb_lib.number_format(jQuery(this).val()));
+    });
+};

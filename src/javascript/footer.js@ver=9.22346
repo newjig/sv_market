@@ -1,0 +1,108 @@
+jQuery(document).ready(function(){
+    var w_width = jQuery(window).width();
+    if(w_width < 1260){
+        jQuery('.btn_register_item_filter').css({'left': '20px'});
+    } else {
+        jQuery('.btn_register_item_filter').css({'left': (w_width - 1010)/2-55});
+    }
+});
+
+jQuery(document).bind('keydown',function(event){
+    if (event.keyCode && event.keyCode == 27) {
+        if(jQuery('#closeUser').show()){
+            jQuery("#closeUser").hide();
+            jQuery("#divMark").hide();
+        }
+    }
+});
+
+function hideUser(){
+    jQuery("#closeUser").hide();
+    jQuery("#divMark").hide();
+}
+
+function resize_img() {
+    maxWidthSize = 720;
+    jQuery("#NewsContent img").each(function() {
+        var originalWidth = jQuery(this).width();
+        var originalHeight = jQuery(this).height();
+        var divId = get_next_id();
+        if (originalWidth > maxWidthSize)
+        {
+            jQuery(this).width(maxWidthSize).attr ({
+                id: 'div_img_'+divId
+            });
+
+            jQuery(this).click(function () {
+                if (jQuery(this).width() == maxWidthSize){
+                    jQuery(this).width ('720px');
+                    var afterId = '#id_after_'+jQuery(this).attr("id");
+                    jQuery(afterId).css({height: jQuery(this).height()+'px'});
+                }
+                else {
+                    jQuery(this).css({position: ""});
+                    var afterId = '#id_after_'+jQuery(this).attr("id");
+                    jQuery(afterId).css({height: "0px"});
+                }
+            });
+        }
+    });
+
+    jQuery("#NewsImageDetail img").each(function(){
+        var originalWidth = jQuery(this).width();
+        var originalHeight = jQuery(this).height();
+        if(originalHeight >=800){
+            originalHeight=800;
+        }
+        var divId = get_next_id();
+        if (originalWidth > maxWidthSize){
+
+            jQuery(this).width(maxWidthSize).attr ({
+                alt: 'Phóng to ảnh',
+                title: 'Phóng to ảnh' ,
+                id: 'div_img_'+divId
+            });
+            jQuery(this).css({height:'400px'});//set chiều cao cho ảnh
+            jQuery(this).after('<div id="id_after_div_img_'+divId+'" style="height:0"></div>');
+            jQuery(this).css({cursor:'pointer'});
+
+            jQuery(this).click(function (){
+                if (jQuery(this).width() == maxWidthSize){
+                    jQuery(this).width ('');
+                    jQuery(this).css({position: "absolute"}).attr ({
+                        alt: 'Thu nhỏ ảnh',
+                        title: 'Thu nhỏ ảnh'
+                    });;
+                    var afterId = '#id_after_'+jQuery(this).attr("id");
+
+                    jQuery(afterId).css({height: originalHeight+'px'});
+                }else{
+                    jQuery(this).width (maxWidthSize).attr ({
+                        alt: 'Phóng to ảnh',
+                        title: 'Phóng to ảnh'
+                    });;
+                    jQuery(this).css({position: ""});
+                    var afterId = '#id_after_'+jQuery(this).attr("id");
+                    jQuery(afterId).css({height: "0px"});
+                }
+            });
+        }
+    });
+}
+function get_next_id (){
+    id = 1;
+    while (document.getElementById("id_after_div_img_"+id) != null){
+        id++;
+    }
+    return id;
+}
+function setTipPos(){
+    var obj = document.getElementById('imagesUp');
+    var posX = obj.offsetLeft;
+    if(document.getElementById('tipUp') != null)
+    {
+        document.getElementById('tipUp').style.marginLeft = posX+15;
+        document.getElementById('tipUp').style.marginTop = '-35px';
+        document.getElementById('tipUp').style.display = 'inline';
+    }
+}

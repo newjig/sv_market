@@ -1,0 +1,2224 @@
+/**
+ * Date created 7/4/2014
+ * @author: HieuTV
+ * Object chứa các action về thanh toán dịch vụ tin đăng
+ */
+if (typeof objService == 'undefined') {
+
+    var objService = {
+        pay_type        : 0, //1: visa, 2: gold, 3: atm
+        bank_type       : '', //Ngân hàng chuyển khoản
+        price_upitem    : 0, //Giá mua lượt up
+        count_upitem    : 0, //Số lượt up
+        card_type       : 'vinaphone', //Default loại thẻ cào
+        cartId          : 0,
+        tmp_buy_service: null,
+        tmp_buy_upitem: null,       // Form mua lượt up
+        tmp_upitem_type: null,      //Form chọn hình thức thanh toán bằng Chuyển khoản - online - gold
+        tmp_upitem_card: null,      //Form chọn hình thức thanh toán bằng thẻ cào
+        tmp_upitem_register: null,  //Form nhập thông tin cá nhân lượt up
+        tmp_upitem_choosen: null,
+        tmp_upitem_confirm: null,
+        tmp_item_package: null,
+        tmp_buy_vip: null,
+        tmp_vip_display: null,
+        tmp_view_buy_vip: null,
+        tmp_view_buyitem: null,
+        tmp_view_buy_vip_faqs: null,
+        tmp_send_mail: null,
+
+        from_screen: 0,
+
+        type_service: 1, //Kiểu dịch vụ mua 1: Lên trang 1, 2: Tin trọn đời, 3: Tin VIP
+
+        vip_item_id: 0, //ID tin VIP Nhập vào
+        vip_type_day: 0, //Kiểu ngày mua tin VIP
+        position_vip_sub: 0, //Vị trí mua tin VIP có sub (oto)
+
+        select_pay_upitem: 0,   //Chọn kiểu thanh toán lượt up (1.Chuyển khoản - online - gold, 2.thẻ cào)
+        packageUp: 0,          //key mảng up tin: CGlobal::$upItem
+
+        check_item: 0,
+        price_item_buyed: 0,// Số tiền đã nạp thẻ
+        is_click: false, // Đã click vào nút Đồng ý và thanh toán để không cho click liên tiếp nhiều lần
+
+        list_vip_cat: null,//danh sach tin vip theo danh mục
+        cate_name: '',
+        item_link: '',
+        is_show_rbd: 0, //có hiển thị rbd trong form mua lượt up ko
+        position: 1, //vị trí vip 0: đầu trang, 1: cuối trang
+        p_cat_id: 0, //Hiển thị nhu cầu = 0 tất cả, xe mới, xe cũ
+        buy_page: 0, //Mua tin vi từ trang list
+
+        //========================== general ===========================
+        choosePaymentType : function(id) { //Chọn hình thức thanh toán
+            for(var i = 1; i<=4; i++)
+        	{
+                if(i == id)
+        		{
+                    jQuery("#paytype_"+i).addClass("rowActice");
+                    jQuery("#radio_"+i).attr("checked", true);
+                    jQuery("#info_"+i).slideDown(300);
+                }
+        		else
+        		{
+                    jQuery("#paytype_"+i).removeClass('rowActice');
+                    jQuery("#radio_"+i).attr("checked", false);
+                    jQuery("#info_"+i).slideUp(300);
+                }
+            }
+
+            if(id == 3)//Chuyển khoản
+        	{
+                jQuery("#bank_hidden").slideDown(300);
+            }
+        	else
+        	{
+                jQuery("#bank_hidden").slideUp(300);
+            }
+
+            objService.pay_type = id;
+
+
+            if(id == 2 && user_id == 0) {
+                /*alert('Quý khách phải đăng nhập để sử dụng dịch vụ này của Rồng Bay!');
+                jQuery("#paytype_2").removeClass("rowActice");
+                jQuery("#radio_2").attr("checked", false);
+                objService.pay_type = 0;*/
+                jQuery('#loadingTitleDiv').hide();
+                pay_cancel();
+
+                alert('Bạn cần đăng nhập trước khi sử dụng chức năng này.');
+                shop.hide_overlay_popup('cart-regulations');
+                openMyModal( BASE_URL + 'mingid/ming_request.php',600,800);
+                return;
+            }
+        },
+
+        overPaymentType : function(id) { //Mouse over
+            var i = 1;
+            for(i = 1; i<=4; i++){
+                if(i == id){
+                    jQuery("#paytype_"+i).addClass("rowHover");
+                }else if(!jQuery("#paytype_"+i).hasClass('rowActice')){
+                    jQuery("#paytype_"+i).removeClass('rowHover');
+                }
+            }
+        },
+
+        outPaymentType : function(id) { //Mouse out
+            if(!jQuery("#paytype_"+id).hasClass('rowActice')){
+                    jQuery("#paytype_"+id).removeClass('rowHover');
+                }
+        },
+
+        viewMoreOnlineBank : function(){
+            if(jQuery('.otherBanks').hasClass('disNone')){
+                jQuery('.otherBanks').slideDown().removeClass('disNone');
+            }else{
+                jQuery('.otherBanks').slideUp().addClass('disNone');
+            }
+        },
+
+        chooseBank : function(id){ //Chọn ngân hàng chuyển khoản
+            var tem = objService.bankInfo(id);
+            jQuery('.listBank').slideUp(500);
+            jQuery('.detailBank').html(tem);
+            jQuery('.detailBank').slideDown(500);
+
+            objService.bank_type = id;
+        },
+
+        showListBank : function()
+        {
+            jQuery('.detailBank').slideUp(300);
+            jQuery('.listBank').slideDown(300);
+        },
+
+        bankInfo : function(id)
+        {
+            var listBank = {
+                    bank:{
+                        //'mb_bank': '%3Cstrong%3E-+S%E1%BB%91+TK%3A%3C%2Fstrong%3E+0651100016002%3Cstrong%3E%3Cbr%3E-+Ch%E1%BB%A7+t%C3%A0i+kho%E1%BA%A3n%3A%3C%2Fstrong%3E+C%C3%B4ng+ty+C%E1%BB%95+ph%E1%BA%A7n+VCCorp%3Cbr%3E%3Cstrong%3E-+Ng%C3%A2n+h%C3%A0ng+th%C6%B0%C6%A1ng+m%E1%BA%A1i+c%E1%BB%95+ph%E1%BA%A7n+Qu%C3%A2n+%C4%91%E1%BB%99i+-+CN+Hai+B%C3%A0+Tr%C6%B0ng+%28MB%29%3C%2Fstrong%3E',
+                        'acb_bank': '%3Cstrong%3E-+S%E1%BB%91+TK%3A%3C%2Fstrong%3E+37182319%3Cbr%3E%3Cstrong%3E-+Ch%E1%BB%A7+t%C3%A0i+kho%E1%BA%A3n%3A%3C%2Fstrong%3E+C%C3%B4ng+ty+C%E1%BB%95+ph%E1%BA%A7n+VCCorp%3Cbr%3E%3Cstrong%3E-+Ng%C3%A2n+h%C3%A0ng+%C3%81+Ch%C3%A2u+chi+nh%C3%A1nh+H%C3%A0+N%E1%BB%99i+%28ACB%29%3C%2Fstrong%3E',
+                        'vc_bank': '%3Cstrong%3E-+S%E1%BB%91+TK%3A%3C%2Fstrong%3E+002.1.00.183924.3%3Cbr%3E%3Cstrong%3E-+Ch%E1%BB%A7+t%C3%A0i+kho%E1%BA%A3n%3A%3C%2Fstrong%3E+C%C3%B4ng+ty+C%E1%BB%95+ph%E1%BA%A7n+VCCorp%3Cbr%3E%3Cstrong%3E-+Ng%C3%A2n+h%C3%A0ng+Vietcombank+%28VCB%29+H%C3%A0+N%E1%BB%99i%3C%2Fstrong%3E',
+                        'vib_bank': '%3Cstrong%3E-+S%E1%BB%91+TK%3A%3C%2Fstrong%3E+001704060035755%3Cbr%3E%3Cstrong%3E-+Ch%E1%BB%A7+t%C3%A0i+kho%E1%BA%A3n%3A%3C%2Fstrong%3E+C%C3%B4ng+ty+C%E1%BB%95+ph%E1%BA%A7n+VCCorp%3Cbr%3E%3Cstrong%3E-+Ng%C3%A2n+h%C3%A0ng+TMCP+Qu%E1%BB%91c+t%E1%BA%BF+Vi%E1%BB%87t+Nam+%28VIB%29%3C%2Fstrong%3E',
+                        'donga_bank': '%3Cstrong%3E-+S%E1%BB%91+TK%3A%3C%2Fstrong%3E+002387340001%3Cbr%3E%3Cstrong%3E-+Ch%E1%BB%A7+t%C3%A0i+kho%E1%BA%A3n%3A%3C%2Fstrong%3E+C%C3%B4ng+ty+C%E1%BB%95+ph%E1%BA%A7n+VCCorp%3Cbr%3E%3Cstrong%3E-+Ng%C3%A2n+h%C3%A0ng+%C4%90%C3%B4ng+%C3%81+chi+nh%C3%A1nh+B%E1%BA%A1ch+Mai+-+H%C3%A0+N%E1%BB%99i%3C%2Fstrong%3E',
+                        'techcom_bank': '%3Cstrong%3E-+S%E1%BB%91+TK%3A%3C%2Fstrong%3E+10320141354011%3Cbr%3E%3Cstrong%3E-+Ch%E1%BB%A7+t%C3%A0i+kho%E1%BA%A3n%3A%3C%2Fstrong%3E+C%C3%B4ng+ty+C%E1%BB%95+ph%E1%BA%A7n+VCCorp%3Cbr%3E%3Cstrong%3E-+Ng%C3%A2n+h%C3%A0ng+Techcombank+CN+Th%C4%83ng+Long%3C%2Fstrong%3E',
+                        'bidv_bank': '%3Cstrong%3E-%2BS%E1%BB%91%2BTK%3A%3C%2Fstrong%3E%2B124.1000.0238.858%3Cbr%3E%3Cstrong%3E-%2BCh%E1%BB%A7%2Bt%C3%A0i%2Bkho%E1%BA%A3n%3A%3C%2Fstrong%3E%2BC%C3%B4ng%2Bty%2BC%E1%BB%95%2Bph%E1%BA%A7n%2BTruy%E1%BB%81n%2Bth%C3%B4ng%2BVi%E1%BB%87t%2BNam%3Cbr%3E%3Cstrong%3E-%2BNg%C3%A2n%2Bh%C3%A0ng%2BBIDV%2BCN%2BHo%C3%A0n%2BKi%E1%BA%BFm%3C%2Fstrong%3E',
+                        'vietinbank': '%3Cp%3E%3Cstrong%3E-+S%E1%BB%91+TK%3A%3C%2Fstrong%3E+1020.1000.1108.169%3Cbr+%2F%3E%3Cstrong%3E-+Ch%E1%BB%A7+t%C3%A0i+kho%E1%BA%A3n%3A%3C%2Fstrong%3E+C%C3%B4ng+ty+C%E1%BB%95+ph%E1%BA%A7n+VCCorp%3Cbr+%2F%3E%3Cstrong%3E-+Ng%C3%A2n+h%C3%A0ng+C%C3%B4ng+th%C6%B0%C6%A1ng+Vi%E1%BB%87t+Nam+chi+nh%C3%A1nh+Hai+B%C3%A0+Tr%C6%B0ng%3C%2Fstrong%3E%3C%2Fp%3E',
+                        'agribank': '%3Cp%3E%3Cstrong%3E-+S%E1%BB%91+TK%3A%3C%2Fstrong%3E+1483.2010.047.40%3Cbr+%2F%3E%3Cstrong%3E-+Ch%E1%BB%A7+t%C3%A0i+kho%E1%BA%A3n%3A%3C%2Fstrong%3E+C%C3%B4ng+ty+C%E1%BB%95+ph%E1%BA%A7n+VCCorp%3Cbr+%2F%3E%3Cstrong%3E-+Ng%C3%A2n+h%C3%A0ng+AGRIBANK+chi+nh%C3%A1nh+Th%E1%BB%A7+%C4%90%C3%B4%3C%2Fstrong%3E%3C%2Fp%3E'
+                        }
+                };
+
+
+            var note = decodeURIComponent(listBank.bank[id]);
+            note = '<div class="mgt_10">'+note.replace(/\+/gi,' ')+'</div>';
+            info_bank_atm = note;
+            return temp = objService.cart_join
+                            ('<div class="logoBank '+id+'_rb"></div>')
+                            ('<div class="detailInfo">'+note)
+                                ('<div class="ntdetail">(Quý khách vui lòng tự thanh toán chi phí CK)</div>')
+                            ('</div>')
+                            ('<div class="c_eb"></div>')
+                            ('<div class="goBack" onclick="objService.showListBank()">Chọn ngân hàng khác</div>')
+                            ('<div class="c_eb"></div>')();
+        },
+
+        bankInfoFinal : function(id)
+        {
+            var listBank = {
+                bank:{
+                    //mb_bank :       {'acount_number' : '0651100016002',         'acount_name' : 'Công ty Cổ phần VCCorp', 'branch' : 'Ngân hàng thương mại cổ phần Quân đội - CN Hai Bà Trưng (MB)'},
+                    acb_bank :      {'acount_number' : '37182319',              'acount_name' : 'Công ty Cổ phần VCCorp', 'branch' : 'Ngân hàng Á Châu chi nhánh Hà Nội (ACB)'},
+                    vc_bank :       {'acount_number' : '002.1.00.183924.3',     'acount_name' : 'Công ty Cổ phần VCCorp', 'branch' : 'Ngân hàng Vietcombank (VCB) Hà Nội'},
+                    vib_bank :      {'acount_number' : '001704060035755',       'acount_name' : 'Công ty Cổ phần VCCorp', 'branch' : 'Ngân hàng TMCP Quốc tế Việt Nam (VIB)'},
+                    donga_bank :    {'acount_number' : '002387340001',          'acount_name' : 'Công ty Cổ phần VCCorp', 'branch' : 'Ngân hàng Đông Á chi nhánh Bạch Mai - Hà Nội'},
+                    techcom_bank :  {'acount_number' : '10320141354011',        'acount_name' : 'Công ty Cổ phần VCCorp', 'branch' : 'Ngân hàng Techcombank CN Thăng Long'},
+                    bidv_bank :     {'acount_number' : '124.1000.0238.858',        'acount_name' : 'Công ty Cổ phần VCCorp', 'branch' : 'Ngân hàng BIDV CN Hoàn Kiếm'},
+                    vietinbank :    {'acount_number' : '1020.1000.1108.169',    'acount_name' : 'Công ty Cổ phần VCCorp', 'branch' : 'Ngân hàng Công thương Việt Nam chi nhánh Hai Bà Trưng'},
+                    agribank :      {'acount_number' : '1483.2010.047.40',      'acount_name' : 'Công ty Cổ phần VCCorp', 'branch' : 'Ngân hàng AGRIBANK chi nhánh Thủ Đô'}
+                }
+            };
+
+            return temp = objService.cart_join
+                            ('<div class="logoATMBank" style="background: url(\'style/images/service/bank/'+(id)+'.png\') no-repeat center center"></div>')
+                            ('<div class="boxAcct_cont">')
+                                ('<ul class="infoItem rowbank">')
+                                    ('<li>')
+                                        ('<div class="labelInfo">Số tài khoản</div>')
+                                        ('<div class="contInfo">: <a href="javascript:void(0);">'+(listBank.bank[id].acount_number)+'</a> </div>')
+                                        ('<div class="clear"></div>')
+                                    ('</li>')
+                                    ('<li>')
+                                        ('<div class="labelInfo">Chủ tài khoản</div>')
+                                        ('<div class="contInfo">: <a href="javascript:void(0);">'+(listBank.bank[id].acount_name)+'</a></div>')
+                                        ('<div class="clear"></div>')
+                                    ('</li>')
+                                    ('<li class="labelInfo">')
+                                        (listBank.bank[id].branch)
+                                        ('<div class="clear"></div>')
+                                    ('</li>')
+                                ('</ul>')
+                                ('<i class="" style="color: #e44366">(Quý khách vui lòng thanh toán chi phí chuyển khoản)</i>')
+                            ('</div>')();
+        },
+
+        cart_join : function(str){
+            var store = [str];
+            return function extend(other) {
+                if (other != null && 'string' == typeof other ) {
+                    store.push(other);
+                    return extend;
+                }
+                return store.join('');
+            }
+        },
+
+        selectUp : function(id,type){
+            objService.select_pay_upitem = (type == true ? 1 : 2);
+            objService.packageUp = id;
+            jQuery((type == true ? "#type_pay_" : "#type_card_pay_")+id).attr("checked", true);
+
+            var bonus = (type == true ? upItem[id].bonus : upItem[id].card_bonus);
+            var result = '', bonusStr = '', upstr = '';
+            if(bonus)
+            {
+                bonusStr = ' + '+bonus;
+                result = ' = <span class="bonus">'+(upItem[id].num_up + bonus)+' lượt</span>';
+                upstr = 'tặng thêm';
+            }
+            var str = 'Tổng số lượt lên trang 1: <b>'+(upItem[id].num_up) + (bonusStr) + ' lượt '+(upstr) + result +' </b>';
+            jQuery('#totalUp').attr('innerHTML', str);
+
+            objService.price_upitem = upItem[id].price; //Gia
+            objService.count_upitem = upItem[id].num_up + bonus;//So luot up
+        },
+
+        chooseTelco:function(obj, type) {
+            document.getElementById('r_'+type).checked = true;
+        },
+        //========================end general===========================
+
+
+        //1. CÁC MÀN HÌNH MUA LƯỢT LÊN TRANG 1===================================================
+        //Form common mua dịch vụ tin đăng
+        popup_buy_service : function(item_id) {
+           /* if(item_id != undefined){
+                ad_id = item_id;
+            }*/
+
+            ad_id = item_id;
+
+            /*if (objService.tmp_buy_service != null) {
+                pay_popup(objService.tmp_buy_service);
+            } else*/ {
+                jQuery('#loadingTitleDiv').show();
+                //pay_cancel();
+                jQuery.ajax({
+                    type: "POST",
+                    url: "ajax.php@act=service&code=popup_buy_service",
+                    data: {ad_id:item_id},
+                    dataType: "json",
+                    success: function(json){
+                        jQuery('#loadingTitleDiv').hide();
+                        if (typeof json.countItemCart !== 'undefined' && json.countItemCart)
+                            jQuery('#num_item_cart>span').html(json.countItemCart);//Update số tin trong giỏ hàng ở header
+                        objService.tmp_buy_service = json.temp;
+                        pay_popup(json.temp);
+                    }
+                });
+            }
+        },
+
+        //1.1. Form mua lượt up
+        popup_upitem : function(ad_id, pack_up) {
+            //objService.select_pay_upitem = 0; //Clear chọn kiểu thanh toán lượt up
+            //objService.pay_type = 0; //Clear
+            //objService.bank_type = 0; //Clear
+            objService.type_service = 1;
+
+            if(pack_up == undefined){ //chon gói up tin
+                pack_up  = 0;
+            }
+
+            /*if (objService.tmp_buy_upitem != null) {
+                pay_popup(objService.tmp_buy_upitem);
+            } else {*/
+                jQuery('#loadingTitleDiv').show();
+                jQuery.ajax({
+                    type: "POST",
+                    url: "ajax.php@act=service&code=popup_upitem",
+                    data: {ad_id:ad_id, pack_up:pack_up},
+                    dataType: "json",
+                    success: function(json){
+                        jQuery('#loadingTitleDiv').hide();
+                        objService.tmp_buy_upitem = json.temp;
+                        pay_popup(json.temp);
+
+                        if(pack_up > 0){
+                            shop.hide_overlay_popup('cart-regulations');// mua lượt up từ giỏ hàng
+                        }
+                    }
+                });
+            //}
+        },
+
+        //Form thanh toán mua lượt up
+        pay_upitem : function() {
+            if(objService.packageUp == 0 || objService.select_pay_upitem == 0) {
+                alert('Hãy chọn hình thức thanh toán');
+            }else {
+                if(objService.select_pay_upitem == 1) { // Nếu Chuyển khoản - online - gold
+                    objService.pay_upitem_type();
+                } else {
+                    objService.pay_type = 'mcard';
+                    objService.popup_upitem_register();
+                }
+            }
+        },
+
+        //Chọn hình thức thanh toán lượt up bằng Chuyển khoản - online - gold
+        pay_upitem_type : function() {
+            jQuery.unblockUI();
+
+            var pay_card = '', btBack='';
+            if(objService.type_service == 3)
+            {
+                pay_card = cart_join
+                            ('<li id="paytype_4" class="lPayment payCard '+(objService.pay_type == 4 ? 'rowActice' : '')+'" onclick="objService.choosePaymentType(4)" onmouseover="objService.overPaymentType(4)" onmouseout="objService.outPaymentType(4)">')
+                                ('<div class="rowPayment">')
+                                    ('<div class="radioBox">')
+                                        ('<input type="radio" name="radio_pay" id="radio_4" value="visa" '+(objService.pay_type == 4 ? 'checked' : '')+'>')
+                                    ('</div>')
+                                    ('<div class="contentBox">')
+                                        ('<div class="payTitBox">Thanh toán bằng thẻ cào điện thoại và thẻ Game</div>')
+                                        ('<div class="cardBox">')
+                                            ('<span class="rcard vinaphone"></span>')
+                                            ('<span class="rcard mobiphone"></span>')
+                                            ('<span class="rcard viettel"></span>')
+                                            ('<span class="rcard vcoin"></span>')
+                                            ('<span class="rcard oncash"></span>')
+                                            ('<div class="clear"></div>')
+                                        ('</div>')
+                                    ('</div>')
+                                    ('<div class="clear"></div>')
+                                ('</div>')
+                            ('</li>')();
+
+                btBack = "objService.popup_buy_vip();";
+            }
+            else
+            {
+                btBack = "objService.popup_upitem(ad_id);";
+            }
+
+            var tmp_upitem_type = cart_join
+                ('<div class="service" style="width: 700px;">')
+                    ('<form id="typePayUpItem" name="typePayUpItem" enctype="multipart/form-data" method="post" action="">')
+                        ('<div class="classic-popup">')
+                            ('<div class="body-popup">')
+                                ('<div class="head-popup">')
+                                    ('<div class="title">Chọn hình thức thanh toán</div>')
+                                    ('<div class="close-popup" title="Đóng" onclick="pay_cancel();"></div>')
+                                    ('<div class="clear"></div>')
+                                ('</div>')
+                                ('<div class="main-payment">')
+                                    ('<ul class="listPayment">')
+                                        ('<li id="paytype_1" class="lPayment payOnline '+(objService.pay_type == 1 ? 'rowActice' : '')+'" onclick="objService.choosePaymentType(1)" onmouseover="objService.overPaymentType(1)" onmouseout="objService.outPaymentType(1)">')
+                                            ('<div class="rowPayment">')
+                                                ('<div class="radioBox">')
+                                                    ('<input type="radio" name="radio_pay" id="radio_1" value="visa" '+(objService.pay_type == 1 ? 'checked' : '')+'>')
+                                                ('</div>')
+                                                ('<div class="contentBox">')
+                                                    ('<div class="payTitBox">Thanh toán online dùng Visa, Master Card, thẻ ATM, tài khoản có Internet Banking</div>')
+                                                    ('<div class="payTextBox">Thanh toán nhanh gọn và có thể mua hàng hoặc sử dụng dịch vụ ngay sau khi thanh toán.</div>')
+                                                    ('<div class="creditBox">')
+                                                        ('<span class="creditIcon BankBG _visa"></span>')
+                                                        ('<span class="creditIcon BankBG _master"></span>')
+                                                        ('<span class="creditIcon BankBG _vietcombank"></span>')
+                                                        ('<span class="creditIcon BankBG _dongabank"></span>')
+                                                        ('<span class="creditIcon BankBG _techcombank"></span>')
+                                                        ('<span class="creditIcon BankBG _vietinbank"></span>')
+                                                        ('<span class="viewMoreBanks" onclick="objService.viewMoreOnlineBank();">[Thêm...]</span>')
+                                                        ('<div class="clear"></div>')
+                                                        ('<div class="otherBanks disNone">')
+                                                            ('<span class="creditIcon BankBG _hdbank"></span>')
+                                                            ('<span class="creditIcon BankBG _vib"></span>')
+                                                            ('<span class="creditIcon BankBG _tienphongbank"></span>')
+                                                        ('</div>')
+                                                        ('<div class="clear"></div>')
+                                                    ('</div>')
+                                                    ('<ul id="info_1" class="listPaymentGuide" style="display: none">')
+                                                        ('<li class="lGuide">Không mất phí thanh toán</li>')
+                                                        ('<li class="lGuide">Thẻ của Quý khách phải được kích hoạt chức năng thanh toán trực tuyến hoặc đã đăng ký Internet Banking</li>')
+                                                        ('<li class="lGuide">Thanh toán nhanh gọn và có thể sử dụng dịch vụ ngay sau khi thanh toán.</li>')
+                                                    ('</ul>')
+                                                ('</div>')
+                                                ('<div class="clear"></div>')
+                                            ('</div>')
+                                        ('</li>')
+                                        (pay_card)
+                                        ('<li id="paytype_2" class="lPayment payGold '+(objService.pay_type == 2 ? 'rowActice' : '')+'" onclick="objService.choosePaymentType(2)" onmouseover="objService.overPaymentType(2)" onmouseout="objService.outPaymentType(2)">')
+                                            ('<div class="rowPayment">')
+                                                ('<div class="radioBox">')
+                                                    ('<input type="radio" name="radio_pay" id="radio_2" value="gold" '+(objService.pay_type == 2 ? 'checked' : '')+'>')
+                                                ('</div>')
+                                                ('<div class="contentBox">')
+                                                    ('<div class="payTitBox">Thanh toán bằng tài khoản Gold</div>')
+                                                    ('<ul class="listPaymentGuide">')
+                                                        ('<li class="lGuide">Dùng Gold trong tài khoản để thanh toán. Quý khách có thể <b class="bText">nạp gold</b> vào tài khoản để được thanh toán nhanh chóng và dễ dàng hơn.</li>')
+                                                    ('</ul>')
+                                                ('</div>')
+                                                ('<div class="clear"></div>')
+                                            ('</div>')
+                                        ('</li>')
+                                        ('<li id="paytype_3" class="lPayment payAtm '+(objService.pay_type == 3 ? 'rowActice' : '')+'"'+(objService.type_service == 3 ? ' style="display:none" ' : '')+' onclick="objService.choosePaymentType(3)" onmouseover="objService.overPaymentType(3)" onmouseout="objService.outPaymentType(3)">')
+                                            ('<div class="rowPayment">')
+                                                ('<div class="radioBox">')
+                                                    ('<input type="radio" name="radio_pay" id="radio_3" value="atm" '+(objService.pay_type == 3 ? 'checked' : '')+'>')
+                                                ('</div>')
+                                                ('<div class="contentBox">')
+                                                    ('<div class="payTitBox">Chuyển khoản <span class="notiText">(Quý khách tự thanh toán chi phí chuyển khoản)</span></div>')
+                                                    ('<div class="payTextBox" style="line-height: 18px;">Sau khi chuyển khoản, quý khách vui lòng thông báo cho Rồng bay được biết qua địa chỉ email: lienhe@rongbay.com hoặc gọi điện cho số điện thoại 04 73095555 Máy lẻ: 495 / 496 / 497</div>')
+                                                    ('<div id="info_3" class="bankATM" style="display: none;">')
+                                                        ('<div class="slBankTit">Chọn ngân hàng của RồngBay.com mà Quý khách sẽ chuyển tiền vào:</div>')
+                                                        ('<div class="detailBank"></div>')
+                                                        ('<div class="listBank">')
+                                                            ('<a onclick="objService.chooseBank(\'vc_bank\')"><span class="BankBG _vietcombank"></span></a>')
+                                                            ('<a onclick="objService.chooseBank(\'donga_bank\')"><span class="BankBG _dongabank"></span></a>')
+                                                            ('<a onclick="objService.chooseBank(\'techcom_bank\')"><span class="BankBG _techcombank"></span></a>')
+                                                            ('<a onclick="objService.chooseBank(\'agribank\')"><span class="BankBG _agribank"></span></a>')
+                                                            ('<a onclick="objService.chooseBank(\'bidv_bank\')"><span class="BankBG _bidvbank"></span></a>')
+                                                            ('<a onclick="objService.chooseBank(\'vietinbank\')"><span class="BankBG _vietinbank"></span></a>')
+                                                            /*('<a onclick="objService.chooseBank(\'mb_bank\')"><span class="BankBG _mbbank"></span></a>')*/
+                                                            ('<a onclick="objService.chooseBank(\'acb_bank\')"><span class="BankBG _acbbank"></span></a>')
+                                                            ('<a onclick="objService.chooseBank(\'vib_bank\')"><span class="BankBG _vib"></span></a>')
+                                                            ('<div class="clear"></div>')
+                                                        ('</div>')
+                                                        ('<ul class="listPaymentGuide">')
+                                                            ('<li class="lGuide">Khi chuyển khoản qua Internet Banking hoặc Quầy giao dịch, Quý khách vui lòng tự chịu phí chuyển khoản.</li>')
+                                                            ('<li class="lGuide">Dịch vụ được kích hoạt chỉ khi tiền đã về tài khoản của RồngBay</li>')
+                                                        ('</ul>')
+                                                    ('</div>')
+                                                ('</div>')
+                                                ('<div class="clear"></div>')
+                                            ('</div>')
+                                        ('</li>')
+                                    ('</ul>')
+                                ('</div>')
+                                ('<div class="bottom-popup">')
+                                    ('<div class="buttonBox buttonNext" onclick="objService.processStepZero();" title="Tiếp tục">Tiếp tục&nbsp;&nbsp;<span>»</span></div>')
+                                    ('<div class="buttonBox buttonBack" onclick="'+(btBack)+'" title="Quay lại"><span>«</span>&nbsp;&nbsp;Quay lại</div>')
+                                    ('<div class="clear"></div>')
+                                ('</div>')
+                            ('</div>')
+                        ('</div>')
+                    ('</form>')
+                ('</div>')();
+
+            pay_popup(tmp_upitem_type);
+        },
+
+        //Form xử lý khi click button tiếp tục tại màn hình chọn hình thức thanh toán
+        processStepZero:function() {
+
+            if (!jQuery('.lPayment').hasClass('rowActice')) {
+                alert('Quý khách chưa chọn hình thức thanh toán');
+                return;
+            }
+
+            if (objService.pay_type == 3 && objService.bank_type == '') {
+                alert('Quý khách chưa chọn ngân hàng để chuyển tiền vào');
+                return;
+            }
+
+            if (objService.pay_type == 2 && user_id == 0) {
+                jQuery('#loadingTitleDiv').hide();
+                pay_cancel();
+
+                alert('Bạn cần đăng nhập trước khi sử dụng chức năng này.');
+                shop.hide_overlay_popup('cart-regulations');
+                openMyModal( BASE_URL + 'mingid/ming_request.php',600,800);
+                return;
+            }
+
+            objService.popup_upitem_register();
+        },
+
+        //Nhập thông tin cá nhân
+        popup_upitem_register : function(id) {
+            jQuery.unblockUI();
+
+            var onc = '';
+            if(objService.type_service == 1){ //Mua lượt lên trang 1
+                if(objService.select_pay_upitem == 1) //Nếu Chuyển khoản - online - gold
+                    onc = 'objService.pay_upitem_type();';
+                else
+                    onc = 'objService.popup_upitem(ad_id);';
+            }
+            else if(objService.type_service == 3) { //Mua tin VIP
+                onc = 'objService.pay_upitem_type();';
+            }
+
+
+            /*if (objService.tmp_upitem_register != null) {
+                pay_popup(objService.tmp_upitem_register);
+            } else {*/
+                objService.tmp_upitem_register = cart_join
+                    ('<div class="service" style="width: 345px;">')
+                        ('<form id="infoUser" name="infoUser" enctype="multipart/form-data" method="post" action="">')
+                            ('<div class="classic-popup">')
+                                ('<div class="body-popup">')
+                                    ('<div class="head-popup">')
+                                        ('<div class="title">Nhập thông tin cá nhân</div>')
+                                        ('<div class="close-popup" title="Đóng" onclick="pay_cancel();"></div>')
+                                        ('<div class="clear"></div>')
+                                    ('</div>')
+                                    ('<div class="main-popup">')
+                                        ('<div class="boxInfoUser">')
+                                            ('<div class="rowInput">')
+                                                ('<label class="fname">Họ và tên: </label>')
+                                                ('<input type="text" name="obj_serv_name" id="obj_serv_name" class="fname" value="'+(user_info.fullname)+'">')
+                                                ('<div class="clear"></div>')
+                                                ('<div class="noticeInput">Vui lòng cho chúng tôi biết họ tên của Quý khách</div>')
+                                            ('</div>')
+                                            ('<div class="rowInput">')
+                                                ('<label class="email">Email:</label>')
+                                                ('<input type="text" name="obj_serv_email" id="obj_serv_email" class="email" value="'+(user_info.email)+'">')
+                                                ('<div class="clear"></div>')
+                                                ('<div class="noticeInput">Vui lòng nhập chính xác địa chỉ email</div>')
+                                            ('</div>')
+                                            ('<div class="rowInput">')
+                                                ('<label class="mobile">Điện thoại di động</label>')
+                                                ('<input type="text" name="obj_serv_mobile" id="obj_serv_mobile" class="mobile" value="'+(user_info.mobile)+'">')
+                                                ('<div class="clear"></div>')
+                                                ('<div class="noticeInput">Vui lòng nhập đúng số điện thoại di động</div>')
+                                            ('</div>')
+                                        ('</div>')
+                                    ('</div>')
+                                    ('<div class="bottom-popup">')
+                                        ('<div id="btFinishOrder" class="buttonBox buttonNext" onclick="objService.check_register();" title="Tiếp tục">Tiếp tục&nbsp;&nbsp;<span>»</span></div>')
+                                        ('<div class="buttonBox buttonBack" onclick="'+(onc)+'" title="Quay lại"><span>«</span>&nbsp;&nbsp;Quay lại</div>')
+                                        ('<div class="clear"></div>')
+                                    ('</div>')
+                                ('</div>')
+                            ('</div>')
+                        ('</form>')
+                    ('</div>')();
+                pay_popup(objService.tmp_upitem_register);
+            //}
+        },
+
+        //Xử lý view thông tin cá nhân
+        check_register:function() {
+            var frm = document.infoUser, fname = '',tel = '',email = '';
+
+            if (frm.obj_serv_name) {
+                fname = frm.obj_serv_name.value.trim();
+                if (fname == '') {
+                    alert('Bạn vui lòng nhập họ tên');
+                    return;
+                }
+                else if (fname.length < 3 || fname.length > 30) {
+                    alert('Họ tên tối thiểu là 3 kí tự tối đa 30 ký tự');
+                    return;
+                }
+            }
+
+            if (frm.obj_serv_email) {
+                email = frm.obj_serv_email.value.trim();
+                if (email == '') {
+                    alert('Chưa nhập địa chỉ email');
+                    return;
+                }
+                else if (!is_email(email)) {
+                    alert('Địa chỉ email không hợp lệ');
+                    return;
+                }
+            }
+
+            if (frm.obj_serv_mobile) {
+                tel = frm.obj_serv_mobile.value.trim();
+                if (tel == '') {
+                    alert('Chưa nhập Số điện thoại');
+                    return;
+                }
+                else if (isNaN(tel)) {
+                    alert('Điện thoại phải là số viết liền\nKhông chứa ký tự đặc biệt');
+                    return;
+                } else if (tel.length >= 15 || tel.length <= 8) {
+                    alert('Điện thoại bạn nhập không đúng\nĐộ dài phải >8 và <15 ký tự');
+                    return;
+                }
+            }
+            user_info.fullname = fname;
+            user_info.email = email;
+            user_info.mobile = tel;
+
+            if(objService.pay_type == 'mcard' || parseInt(objService.pay_type) == 4) {
+                jQuery('#btFinishOrder').attr('onclick','');
+                objService.finishOrder();
+            }
+            else if(objService.pay_type == 1) { //thanh toán bằng online
+                objService.popup_upitem_online();
+            }
+            else if(objService.pay_type == 2) { //thanh toán bằng gold
+                objService.popup_upitem_gold();
+            }
+            else if(objService.pay_type == 3) { //thanh toán bằng chuyển khoản
+                objService.popup_upitem_atm();
+            }
+            return false;
+        },
+
+        popup_buyitem : function() {
+            if (objService.tmp_view_buyitem != null) {
+                pay_popup(objService.tmp_view_buyitem);
+                return;
+            }
+            jQuery.ajax({
+                type: "POST",
+                url: "ajax.php@act=service&code=popup_buyitem",
+                data: "",
+                dataType: "json",
+                success: function(json){
+                    objService.tmp_view_buyitem = json.temp;
+                    pay_popup(json.temp);
+                }
+            });
+        },
+
+        //Form chọn 3 hình thức mua lượt up(Gold/Online/Chuyển khoảng)
+        popup_upitem_choosen : function() {
+            pay_cancel();
+            jQuery.ajax({
+                type: "POST",
+                url: "ajax.php@act=service&code=popup_upitem_choosen",
+                data: "",
+                dataType: "json",
+                success: function(json){
+                    pay_popup(json.temp);
+                }
+            });
+        },
+
+        //thanh toán bằng online
+        popup_upitem_online : function() {
+            jQuery.unblockUI();
+            var rowItemInfo = (objService.type_service == 1) ? '<li><div class="labelInfo">Lượt tin lên trang 1</div><div class="contInfo contInfo_sub">: ' + number_format(objService.count_upitem) + '</div><div class="clear"></div></li>' : '';
+            var linkAppro = (objService.type_service == 1) ? 'Dang-lai-tin-Mua-luot-len-trang-1-fp164.html' : 'Rongbay-ban-tin-VIP-theo-ngay-fp173.html';
+            var pop_online = cart_join
+                ('<div class="service">')
+                    ('<form id="pay_online" name="upload_form" enctype="multipart/form-data" method="post" action="">')
+                        ('<div class="classic-popup">')
+                            ('<div class="body-popup">')
+                                ('<div class="head-popup">')
+                                    ('<div class="title">Thanh toán Online</div>')
+                                    ('<div class="close-popup" title="Đóng" onclick="pay_cancel();"></div>')
+                                    ('<div class="clear"></div>')
+                                ('</div>')
+                                ('<div class="main-popup">')
+                                    ('<div class="boxAcct" style="margin-top: 0px">')
+                                        ('<span class="boxAcct_left">Thông tin khách hàng</span>')
+                                        ('<a href="javascript:void(0);" onclick="objService.popup_upitem_register();"><span class="boxAcct_right">Sửa thông tin khách hàng</span></a>')
+                                        ('<div class="clear"></div>')
+                                        ('<ul class="infoItem">')
+                                            ('<li>')
+                                                ('<div class="labelInfo">Họ tên</div>')
+                                                ('<div class="contInfo contInfo_sub">: '+(user_info.fullname)+'</div>')
+                                                ('<div class="clear"></div>')
+                                            ('</li>')
+                                            ('<li>')
+                                                ('<div class="labelInfo">Email</div>')
+                                                ('<div class="contInfo contInfo_sub">: '+(user_info.email)+'</div>')
+                                                ('<div class="clear"></div>')
+                                            ('</li>')
+                                            ('<li>')
+                                                ('<div class="labelInfo">Điện thoại di động</div>')
+                                                ('<div class="contInfo contInfo_sub">: '+(user_info.mobile)+'</div>')
+                                                ('<div class="clear"></div>')
+                                            ('</li>')
+                                        ('</ul>')
+                                    ('</div>')
+
+                                    ('<div class="boxAcct">')
+                                        ('<span class="boxAcct_left_t">Hình thức thanh toán : <a href="javascript:void(0);" style="cursor: inherit"> Thanh toán Online</a></span>')
+                                        ('<div class="clear"></div>')
+                                        ('<div class="boxAcct_img"></div>')
+                                        ('<div class="boxAcct_cont" style="width: 575px; line-height: 22px;">')
+                                            ('Chấp nhận thanh toán bằng <b>thẻ Visa/ Master</b> và <b>gần 20 thẻ ATM</b> các loại: Vietcombank, VIB, ViettinBank, HDBank, MB, TechcomBank, TienphongBank, EximBank, SacomBank, Maritime Bank, Viet A Bank, VPBank, GPBank, PGBank, Agri Bank, Sea Bank, Ocean Bank...')
+                                        ('</div>')
+                                    ('</div>')
+
+                                    ('<div class="boxAcct" style="border-bottom: none">')
+                                        ('<span class="boxAcct_left_l">Thông tin chi tiết đơn hàng</span>')
+                                        ('<div class="clear"></div>')
+                                        ('<ul class="infoItem">')
+                                            ('<li>')
+                                                ('<div class="labelInfo">ID</div>')
+                                                ('<div class="contInfo contInfo_sub">: <a href="'+((objService.item_link) != '' ? objService.item_link : item_link)+'">'+(ad_id)+'</a></div>')
+                                                ('<div class="clear"></div>')
+                                            ('</li>')
+                                            ('<li>')
+                                                ('<div class="labelInfo">Tiêu đề tin</div>')
+                                                ('<div class="contInfo contInfo_sub">: <a href="'+((objService.item_link) != '' ? objService.item_link : item_link)+'">'+(ad_title)+'</a></div>')
+                                                ('<div class="clear"></div>')
+                                            ('</li>')
+                                            ('<li>')
+                                                ('<div class="labelInfo">Chuyên mục</div>')
+                                                ('<div class="contInfo contInfo_sub">: '+ ((objService.cate_name) != '' ? objService.cate_name : cate_name)+'</div>')
+                                                ('<div class="clear"></div>')
+                                            ('</li>')
+                                            (rowItemInfo)
+                                        ('</ul>')
+                                    ('</div>')
+
+                                    ('<div class="boxAcct boxAcct_font">')
+                                        ('Tổng giá trị thanh toán: <b class="font_#f4597a">' + number_format(objService.price_upitem) + ' VNĐ</b>')
+                                    ('</div>')
+                                    ('<div class="boxAcct_bt">')
+                                        ('<input type="checkbox" id="check-regulations" checked><label for="check-regulations">Tôi đã đọc và đồng ý với <a href="'+linkAppro+'">các điều khoản và quy định</a> của RồngBay.com</label>')
+                                    ('</div>')
+                                ('</div>')
+                                ('<div id="bottom-popup" class="bottom-popup">')
+                                    ('<div id="btFinishOrder" class="buttonBox buttonNext" onclick="objService.finishOrder();" title="Tiếp tục">Thanh toán&nbsp;&nbsp;<span>»</span></div>')
+                                    ('<div class="buttonBox buttonBack" onclick="objService.popup_upitem_register();" title="Quay lại"><span>«</span>&nbsp;&nbsp;Quay lại</div>')
+                                    ('<div class="clear"></div>')
+                                ('</div>')
+                            ('</div>')
+                        ('</div>')
+                    ('</form>')
+                ('</div>')();
+            pay_popup(pop_online);
+        },
+
+        //thanh toán bằng gold
+        popup_upitem_gold : function() {
+            jQuery.unblockUI();
+
+            var label_gold = '', bt_payGold = false;
+
+            if(RB_GOLD >= objService.price_upitem) {
+                label_gold =   '<li class="labelInfo">\
+                                    Số gold quý khách còn lại: <b style="color: #f4597a">'+number_format(RB_GOLD - objService.price_upitem)+'</b> Gold\
+                                </li>';
+                bt_payGold = '<div id="btFinishOrder" class="buttonBox buttonNext" onclick="objService.finishOrder();" title="Tiếp tục">Thanh toán&nbsp;&nbsp;<span>»</span></div>'
+            } else {
+                label_gold =   '<li class="labelInfo" style="color: #f4597a">\
+                                    Quý khách phải nạp thêm Gold để sử dụng dịch vụ\
+                                </li>';
+                bt_payGold = '<div class="buttonBox buttonNext" onclick="pay_cancel();" title="Đóng">Đóng</div>'
+            }
+
+            var rowItemInfo = (objService.type_service == 1) ? '<li><div class="labelInfo">Lượt tin lên trang 1</div><div class="contInfo contInfo_sub">: ' + number_format(objService.count_upitem) + '</div><div class="clear"></div></li>' : '';
+            var linkAppro = (objService.type_service == 1) ? 'Dang-lai-tin-Mua-luot-len-trang-1-fp164.html' : 'Rongbay-ban-tin-VIP-theo-ngay-fp173.html';
+
+            var pop_gold = cart_join
+                ('<div class="service">')
+                    ('<form id="pay_online" name="upload_form" enctype="multipart/form-data" method="post" action="">')
+                        ('<div class="classic-popup">')
+                            ('<div class="body-popup">')
+                                ('<div class="head-popup">')
+                                    ('<div class="title">Thanh toán bằng tài khoản GOLD</div>')
+                                    ('<div class="close-popup" title="Đóng" onclick="pay_cancel();"></div>')
+                                    ('<div class="clear"></div>')
+                                ('</div>')
+                                ('<div class="main-popup">')
+                                    ('<div class="boxAcct" style="margin-top: 0px">')
+                                        ('<span class="boxAcct_left">Thông tin khách hàng</span>')
+                                        ('<a href="javascript:void(0);" onclick="objService.popup_upitem_register();"><span class="boxAcct_right">Sửa thông tin khách hàng</span></a>')
+                                        ('<div class="clear"></div>')
+                                        ('<ul class="infoItem">')
+                                            ('<li>')
+                                                ('<div class="labelInfo">Họ tên</div>')
+                                                ('<div class="contInfo contInfo_sub">: '+(user_info.fullname)+'</div>')
+                                                ('<div class="clear"></div>')
+                                            ('</li>')
+                                            ('<li>')
+                                                ('<div class="labelInfo">Email</div>')
+                                                ('<div class="contInfo contInfo_sub">: '+(user_info.email)+'</div>')
+                                                ('<div class="clear"></div>')
+                                            ('</li>')
+                                            ('<li>')
+                                                ('<div class="labelInfo">Điện thoại di động</div>')
+                                                ('<div class="contInfo contInfo_sub">: '+(user_info.mobile)+'</div>')
+                                                ('<div class="clear"></div>')
+                                            ('</li>')
+                                        ('</ul>')
+                                    ('</div>')
+
+                                    ('<div class="boxAcct">')
+                                        ('<span class="boxAcct_left_l">Thông tin chi tiết đơn hàng</span>')
+                                        ('<div class="clear"></div>')
+                                        ('<ul class="infoItem">')
+                                            ('<li>')
+                                                ('<div class="labelInfo">ID</div>')
+                                                ('<div class="contInfo contInfo_sub">: <a href="'+((objService.item_link) != '' ? objService.item_link : item_link)+'">'+(ad_id)+'</a></div>')
+                                                ('<div class="clear"></div>')
+                                            ('</li>')
+                                            ('<li>')
+                                                ('<div class="labelInfo">Tiêu đề tin</div>')
+                                                ('<div class="contInfo contInfo_sub">: <a href="'+((objService.item_link) != '' ? objService.item_link : item_link)+'">'+(ad_title)+'</a></div>')
+                                                ('<div class="clear"></div>')
+                                            ('</li>')
+                                            ('<li>')
+                                                ('<div class="labelInfo">Chuyên mục</div>')
+                                                ('<div class="contInfo contInfo_sub">: '+((objService.cate_name) != '' ? objService.cate_name : cate_name)+'</div>')
+                                                ('<div class="clear"></div>')
+                                            ('</li>')
+                                            (rowItemInfo)
+                                        ('</ul>')
+                                    ('</div>')
+
+                                    ('<div class="boxAcct" style="border-bottom: none">')
+                                        ('<span class="boxAcct_left_t">Hình thức thanh toán :</span><span class="font_normal"> Thanh toán bằng <b> tài khoản Gold</b></span>')
+                                        ('<a href="usercp.html@cmd=recharge_gold" target="_blank"><span class="boxAcct_right_t" style="float: right">NẠP GOLD</span></a>')
+                                        ('<div class="clear"></div>')
+                                        ('<ul class="infoItem sub_infoItem">')
+                                            ('<li class="labelInfo">')
+                                                ('Số gold quý khách phải thanh toán: <b>' + number_format(objService.price_upitem) + '</b> Gold')
+                                            ('</li>')
+                                        ('</ul>')
+                                        ('<ul class="infoItem sub_infoItem">')
+                                            ('<li class="labelInfo">')
+                                               ('Số gold quý khách hiện có: <b style="color: #f4597a">'+(number_format(RB_GOLD))+'</b> Gold')
+                                            ('</li>')
+                                            (label_gold)
+                                        ('</ul>')
+                                    ('</div>')
+
+                                    ('<div class="boxAcct boxAcct_font">')
+                                        ('Tổng giá trị thanh toán: <b class="font_#f4597a">' + number_format(objService.price_upitem) + ' Gold</b>')
+                                    ('</div>')
+                                    ('<div class="boxAcct_bt">')
+                                        ('<input type="checkbox" id="check-regulations" checked><label for="check-regulations">Tôi đã đọc và đồng ý với <a href="'+linkAppro+'">các điều khoản và quy định</a> của RồngBay.com</label>')
+                                    ('</div>')
+                                ('</div>')
+                                ('<div id="bottom-popup" class="bottom-popup">')
+                                    (bt_payGold)
+                                    ('<div class="buttonBox buttonBack" onclick="objService.popup_upitem_register();" title="Quay lại"><span>«</span>&nbsp;&nbsp;Quay lại</div>')
+                                    ('<div class="clear"></div>')
+                                ('</div>')
+                            ('</div>')
+                        ('</div>')
+                    ('</form>')
+                ('</div>')();
+            pay_popup(pop_gold);
+        },
+
+        //thanh toán bằng chuyển khoản
+        popup_upitem_atm : function() {
+            jQuery.unblockUI();
+
+            var rowItemInfo = (objService.type_service == 1) ? '<li><div class="labelInfo">Lượt tin lên trang 1</div><div class="contInfo contInfo_sub">: ' + number_format(objService.count_upitem) + '</div><div class="clear"></div></li>' : '';
+            var linkAppro = (objService.type_service == 1) ? 'Dang-lai-tin-Mua-luot-len-trang-1-fp164.html' : 'Rongbay-ban-tin-VIP-theo-ngay-fp173.html';
+            var infoRechar = '<div class="more_info_recharing">Sau khi chuyển khoản, quý khách vui lòng thông báo cho Rồng bay được biết qua địa chỉ email: lienhe@rongbay.com  hoặc gọi điện cho số điện thoại 04 73095555 Máy lẻ: 495 / 496 / 497</div>';
+
+            var temp = objService.bankInfoFinal(objService.bank_type);
+            var pop_online = cart_join
+                ('<div class="service">')
+                    ('<form id="pay_atm" name="upload_form" enctype="multipart/form-data" method="post" action="">')
+                        ('<div class="classic-popup">')
+                            ('<div class="body-popup">')
+                                ('<div class="head-popup">')
+                                    ('<div class="title">Thanh toán qua chuyển khoản</div>')
+                                    ('<div class="close-popup" title="đóng" onclick="pay_cancel();"></div>')
+                                    ('<div class="clear"></div>')
+                                ('</div>')
+                                ('<div class="main-popup">')
+                                    ('<div class="boxAcct" style="margin-top: 0px">')
+                                        ('<span class="boxAcct_left">Thông tin khách hàng</span>')
+                                        ('<a href="javascript:void(0);" onclick="objService.popup_upitem_register();"><span class="boxAcct_right">Sửa thông tin khách hàng</span></a>')
+                                        ('<div class="clear"></div>')
+                                        ('<ul class="infoItem">')
+                                            ('<li>')
+                                                ('<div class="labelInfo">Họ tên</div>')
+                                                ('<div class="contInfo contInfo_sub">: '+(user_info.fullname)+'</div>')
+                                                ('<div class="clear"></div>')
+                                            ('</li>')
+                                            ('<li>')
+                                                ('<div class="labelInfo">Email</div>')
+                                                ('<div class="contInfo contInfo_sub">: '+(user_info.email)+'</div>')
+                                                ('<div class="clear"></div>')
+                                            ('</li>')
+                                            ('<li>')
+                                                ('<div class="labelInfo">Điện thoại di động</div>')
+                                                ('<div class="contInfo contInfo_sub">: '+(user_info.mobile)+'</div>')
+                                                ('<div class="clear"></div>')
+                                            ('</li>')
+                                        ('</ul>')
+                                    ('</div>')
+
+                                    ('<div class="boxAcct" style="padding-bottom: 0px">')
+                                        ('<span class="boxAcct_left_t">Hình thức thanh toán :</span> <span class="font_normal"> Chuyển khoản thanh toán qua <font color=\'#1b77b6\'> ATM</font> hoặc <font color=\'#1b77b6\'>nộp tiền tại quầy GD ngân hàng</font> về</span>')
+                                        ('<div class="clear"></div>')
+                                        (temp)
+                                    ('</div>')
+
+                                    ('<div class="boxAcct" style="border-bottom: none">')
+                                        ('<span class="boxAcct_left_l">Thông tin chi tiết đơn hàng</span>')
+                                        ('<div class="clear"></div>')
+                                        ('<ul class="infoItem">')
+                                            ('<li>')
+                                                ('<div class="labelInfo">ID</div>')
+                                                ('<div class="contInfo contInfo_sub">: <a href="'+((objService.item_link) != '' ? objService.item_link : item_link)+'">'+(ad_id)+'</a></div>')
+                                                ('<div class="clear"></div>')
+                                            ('</li>')
+                                            ('<li>')
+                                                ('<div class="labelInfo">Tiêu đề tin</div>')
+                                                ('<div class="contInfo contInfo_sub">: <a href="'+((objService.item_link) != '' ? objService.item_link : item_link)+'">'+(ad_title)+'</a></div>')
+                                                ('<div class="clear"></div>')
+                                            ('</li>')
+                                            ('<li>')
+                                                ('<div class="labelInfo">Chuyên mục</div>')
+                                                ('<div class="contInfo contInfo_sub">: ') ((objService.cate_name) != '' ? objService.cate_name : cate_name)('</div>')
+                                                ('<div class="clear"></div>')
+                                            ('</li>')
+                                            (rowItemInfo)
+                                        ('</ul>')
+                                    ('</div>')
+
+                                    ('<div class="boxAcct boxAcct_font">')
+                                        ('Tổng giá trị thanh toán: <b class="font_#f4597a">' + number_format(objService.price_upitem) + ' VNĐ</b>')
+                                    ('</div>')
+                                    (infoRechar)
+                                    ('<div class="boxAcct_bt">')
+                                        ('<input type="checkbox" id="check-regulations" checked><label for="check-regulations">Tôi đã đọc và đồng ý với <a href="'+linkAppro+'">các điều khoản và quy định</a> của RồngBay.com</label>')
+                                    ('</div>')
+                                ('</div>')
+                                ('<div id="bottom-popup" class="bottom-popup">')
+                                    ('<div id="btFinishOrder" class="buttonBox buttonNext" onclick="objService.finishOrder();" title="Tiếp tục">Kết thúc</div>')
+                                    ('<div class="buttonBox buttonBack" onclick="objService.popup_upitem_register();" title="Quay lại"><span>«</span>&nbsp;&nbsp;Quay lại</div>')
+                                    ('<div class="clear"></div>')
+                                ('</div>')
+                            ('</div>')
+                        ('</div>')
+                    ('</form>')
+                ('</div>')();
+            pay_popup(pop_online);
+        },
+
+        //proces online
+        finishOrder : function(){
+
+            if (parseInt(objService.pay_type) != 4 && objService.pay_type != 'mcard' && !shop.get_ele('check-regulations').checked) {
+                alert('Qu_25C3_25BD kh_25C3_25A1ch ch_25C6_25B0a t_25C3_25ADch v_25C3_25A0o m_25E1_25BB_25A5c _25C4_2591_25_0DC23C9D5D');
+                return;
+            }
+
+            var data = "email_pay=" + user_info.email;
+            data += "&fullname=" + user_info.fullname;
+            data += "&mobile=" + user_info.mobile;
+            data += "&sum_money_cart=" + objService.price_upitem;
+            data += "&payment_type=" + objService.pay_type;
+            data += "&packageUp=" + objService.packageUp;
+            data += "&ad_id=" + ad_id;
+            data += "&item_id=" + ad_id;
+            data += "&position_vip_sub=" + objService.position_vip_sub;
+
+            //Thanh toán dịch vụ Tin VIP
+            if (objService.type_service == 3) {
+                jQuery('#btFinishOrder').attr('onclick','');
+                //Trường hợp chọn thanh toán bằng chuyển khoản thì đóng overlay và không thực hiện gì cả
+                if (objService.pay_type == 3) {
+                    alert('Bạn vừa chọn hình thức chuyển khoản. Mời bạn ra ATM hoặc nộp tiền tại quầy GD ngân hàng để thanh toán dịch vụ.');
+                    pay_cancel();
+                    window.location = ((objService.item_link) != '' ? objService.item_link : item_link);
+                    return false;
+                }
+                else if(objService.pay_type == 2){
+                    var data = "item_id=" + ad_id + "&type_day=" + objService.vip_type_day + "&position=" + objService.position + "&p_cat_id=" + objService.p_cat_id + "&position_vip_sub=" + objService.position_vip_sub;;
+                    jQuery.ajax({
+                        type: "POST",
+                        url: "ajax.php@act=service&code=buy_item_vip",
+                        data: data,
+                        dataType: "json",
+                        success: function(json){
+                            if(json.error == 'success'){
+                                //Ghi log click mua dịch vụ tin đăng
+                                objService.statistic_click(3, ad_id); //Tin VIP = 3
+
+                                //window.location = json.url;
+                                alert("Thanh toán tin vip thành công");
+                                location.reload();
+                            }else{
+                                jQuery('#btFinishOrder').click(objService.finishOrder());
+                                alert(json.error);
+                            }
+                        }
+                    });
+                    return false;
+                }
+
+                data += "&item_id=" + ad_id + "&type_day=" + objService.vip_type_day + "&type_service=" + objService.type_service + "&position=" + objService.position + "&p_cat_id=" + objService.p_cat_id;
+
+                jQuery('#loadingTitleDiv').show();
+                jQuery.ajax({
+                    type: "POST",
+                    url: "ajax.php@act=service&code=saveOrder",
+                    data: data,
+                    dataType: "json",
+                    success: function(json){
+                        jQuery('#loadingTitleDiv').hide();
+                        objService.price_item_buyed = json.price_item_buyed;
+                        if (objService.pay_type == 'mcard' || objService.pay_type == 4) { //objService.pay_type = 4 thẻ cào cho tin vip
+                            if(json.errors != ''){
+                                jQuery('#btFinishOrder').click(objService.finishOrder());
+                                alert(json.errors);
+                            }else{
+                                objService.cartId = json.cartId;
+                                objService.popup_upitem_card();
+                            }
+                        }else{
+                            if(typeof json.url !== 'undefined' && json.url){
+                                //Trường hợp chọn thanh toán bằng nạp thẻ cào
+                                objService.statistic_click(3, ad_id); //Tin VIP = 3
+                                window.location = json.url;
+                            }else{
+                                jQuery('#btFinishOrder').click(objService.finishOrder());
+                                alert(json.errors);
+                            }
+                        }
+                    }
+                });
+                return false;
+            }
+            else //Mua lượt lên trang 1 cho tin
+            {
+                jQuery('#loadingTitleDiv').show();
+                jQuery('#btFinishOrder').attr('onclick','');
+                jQuery.ajax({
+                    type: "POST",
+                    url:"ajax.php@act=service&code=saveOrder",
+                    data: data,
+                    dataType: 'json',
+                    success: function(result) {
+                        jQuery('#loadingTitleDiv').hide();
+
+                        if (!result.errors || result.errors == "") {
+                            objService.cartId = result.cartId;
+
+                            //Trường hợp chọn thanh toán bằng chuyển khoản thì đóng overlay và không thực hiện gì cả
+                            if (objService.pay_type == 3) {
+                                //Ghi log click mua dịch vụ tin đăng
+                                objService.statistic_click(2, ad_id); //Tin lên trang 1 = 2
+                                pay_cancel();
+                                alert('Bạn vừa chọn hình thức chuyển khoản. Mời bạn ra ATM hoặc nộp tiền tại quầy GD ngân hàng để thanh toán dịch vụ.');
+                                window.location = ((objService.item_link) != '' ? objService.item_link : item_link);
+                            }
+
+                            //Trường hợp chọn thanh toán bằng nạp thẻ cào
+                            if (objService.pay_type == 'mcard' || objService.pay_type == 4) { //objService.pay_type = 4 thẻ cào cho tin vip
+                                objService.price_item_buyed = result.price_item_buyed;
+                                objService.popup_upitem_card();
+                                return;
+                            }
+
+                            //Trường hợp chọn thanh toán bằng online
+                            else if (objService.pay_type == 1) {
+                                var data = "email_pay=" + user_info.email;
+                                data += "&fullname=" + user_info.fullname;
+                                data += "&mobile=" + user_info.mobile;
+                                data += "&sum_money_cart=" + objService.price_upitem;
+                                data += "&cartId=" + objService.cartId;
+                                data += "&ad_id=" + ad_id;
+                                data += "&position_vip_sub=" + objService.position_vip_sub;
+
+                                jQuery.ajax({
+                                    type: "POST",
+                                    url:"ajax.php@act=service&code=payment_online",
+                                    data: data,
+                                    dataType: 'json',
+                                    success: function(json) {
+                                        objService.statistic_click(2, ad_id); //Tin lên trang 1 = 2
+                                        window.location = json.url;
+                                    }
+                                });
+                                return false;
+                            }
+
+                            //Trường hợp chọn thanh toán bằng Gold
+                            else if (objService.pay_type == 2) {
+                                objService.finishPaymentByGold();
+                                return;
+                            }
+                        }
+                        else {
+                            alert(result.errors);
+                            jQuery('#btFinishOrder').click(objService.finishOrder());
+                        }
+                    }
+                });
+                return false;
+            }
+        },
+
+        //Form xác nhận thông tin cá nhân và đơn hàng
+        popup_upitem_confirm : function() {
+            pay_cancel();
+            jQuery.ajax({
+                type: "POST",
+                url: "ajax.php@act=service&code=popup_upitem_confirm",
+                data: "",
+                dataType: "json",
+                success: function(json){
+                    pay_popup(json.temp);
+                }
+            });
+        },
+
+        //Form nhập thông tin thẻ cào
+        popup_upitem_card : function() {
+            jQuery.unblockUI();
+
+            var need = shop.cart.cardSuggest(objService.price_upitem, 0), suggest='';
+            if (need) {
+                suggest += '<div class="cardGuide">\
+                                <p>Gợi ý nạp thẻ:</p>';
+                var total=0;
+                for (var i in need) {
+                    total = i;
+                    suggest += '<p>- ' + need[i] + ' thẻ mệnh giá <b class="sugColor">' + shop.cart.theme.numberFormat(i, 0, '', '.') + ' vnđ</b></p>';
+                }
+                if(total <= objService.price_upitem)
+                    suggest += '<p>-  Hoặc nhiều thẻ có tổng giá trị  <b class="sugColor">' + number_format(objService.price_upitem) + ' vnđ</b></p>';
+                suggest += '<p>-  Số tiền thừa sẽ được cộng tiếp vào đơn hàng của Quý khách</p>';
+                suggest += '</div>';
+            }
+
+            /*if (objService.tmp_upitem_card != null) {
+                pay_popup(objService.tmp_upitem_card);
+            } else {*/
+                //Get template và set biến js
+                objService.tmp_upitem_card = cart_join
+                    ('<div class="service" style="width: 515px;">')
+                        ('<form id="cardRecharge" name="cardRecharge" enctype="multipart/form-data" method="post" action="">')
+                            ('<div class="classic-popup">')
+                                ('<div class="body-popup">')
+                                    ('<div class="head-popup">')
+                                        ('<div class="title">Nạp thẻ</div>')
+                                        ('<div class="close-popup" title="Đóng" onclick="pay_cancel();"></div>')
+                                        ('<div class="clear"></div>')
+                                    ('</div>')
+                                    ('<div class="main-popup">')
+                                        ('<div class="boxCardRecharge">')
+                                            ('<div class="titPay">')
+                                                 ('Tổng số tiền quý khách phải nạp là '+(number_format(objService.price_upitem))+'đ')
+                                            ('</div>')
+                                            ('<div class="mgt_10" id="msg_cart">'+(objService.price_item_buyed>0?('<div style="height: 22px; color: #f00;line-height: 16px;clear:left">Tin đăng này đã từng nạp là: '+number_format(objService.price_item_buyed)+' đ</div>'+(objService.price_upitem-objService.price_item_buyed>0?'<div style="height: 18px; color: #f00;;line-height: 9px;">Bạn cần nạp thêm số tiền là: '+(number_format(objService.price_upitem-objService.price_item_buyed))+' đ</div>':'')):'')+'</div>')
+                                            ('<div class="mgt_10" id="msg_cart"></div>')
+                                            ('<div class="mgt_10" id="complete"></div>')
+                                            ('<div class="labelPay labelTPay">Loại thẻ cào</div>')
+                                            ('<div class="choicePay">')
+                                                ('<div class="rowChoice" onclick="objService.chooseTelco(this, \'vinaphone\');">')
+                                                    ('<label for="r_vinaphone" class="lbChoice vinaphone"></label>')
+                                                    ('<input type="radio" name="type_pay" id="r_vinaphone" value="vinaphone" ' + (objService.card_type == 'vinaphone' ? 'checked="true"' : '') + '>')
+                                                ('</div>')
+                                                ('<div class="rowChoice" onclick="objService.chooseTelco(this, \'mobifone\');">')
+                                                    ('<label for="r_mobifone" class="lbChoice mobiphone"></label>')
+                                                    ('<input type="radio" name="type_pay" id="r_mobifone" value="mobifone" ' + (objService.card_type == 'mobifone' ? 'checked="true"' : '') + '>')
+                                                ('</div>')
+                                                ('<div class="rowChoice" onclick="objService.chooseTelco(this, \'viettel\');">')
+                                                    ('<label for="r_viettel" class="lbChoice viettel"></label>')
+                                                    ('<input type="radio" name="type_pay" id="r_viettel" value="viettel" ' + (objService.card_type == 'viettel' ? 'checked="true"' : '') + '>')
+                                                ('</div>')
+                                                ('<div class="rowChoice" onclick="objService.chooseTelco(this, \'vcoin\');">')
+                                                    ('<label for="r_vcoin" class="lbChoice vcoin"></label>')
+                                                    ('<input type="radio" name="type_pay" id="r_vcoin" value="vcoin" ' + (objService.card_type == 'vcoin' ? 'checked="true"' : '') + '>')
+                                                ('</div>')
+                                                ('<div class="rowChoice" onclick="objService.chooseTelco(this, \'oncash\');">')
+                                                    ('<label for="r_oncash" class="lbChoice oncash"></label>')
+                                                    ('<input type="radio" name="type_pay" id="r_oncash" value="oncash" ' + (objService.card_type == 'oncash' ? 'checked="true"' : '') + '>')
+                                                ('</div>')
+                                                ('<div class="clear"></div>')
+                                            ('</div>')
+                                            ('<div class="rowIText">')
+                                                ('<div class="labelPay lbText">Số seri</div>')
+                                                ('<input type="text" name="r_seri" id="r_seri">')
+                                            ('</div>')
+                                            ('<div class="rowIText">')
+                                                ('<div class="labelPay lbText">Mã số thẻ cào</div>')
+                                                ('<input type="text" name="r_card_number" id="r_card_number">')
+                                            ('</div>')
+                                            (suggest)
+                                        ('</div>')
+                                    ('</div>')
+                                    ('<div class="bottom-popup">')
+                                        ('<div id="btRecharge"><div class="buttonBox buttonNext" onclick="objService.recharge();" title="Nạp thẻ">Nạp thẻ</div></div>')
+                                        ('<div class="buttonBox buttonBack" onclick="objService.popup_upitem_register();" title="Quay lại"><span>«</span>&nbsp;&nbsp;Quay lại</div>')
+                                        ('<img id="loading_pay" style="float: right;margin-top: 8px;display: none;" src="images/loading.gif">')
+                                        ('<div class="clear"></div>')
+                                    ('</div>')
+                                ('</div>')
+                            ('</div>')
+                        ('</form>')
+                    ('</div>')();
+
+                pay_popup(objService.tmp_upitem_card);
+            //}
+        },
+
+        //Xử lý thẻ cào điện thoại
+        recharge : function() {
+            var frm = document.cardRecharge, code = '', seri = '';
+            if (frm.r_card_number) {
+                if (!shop.get_ele('r_vinaphone').checked && !shop.get_ele('r_mobifone').checked && !shop.get_ele('r_viettel').checked && !shop.get_ele('r_vcoin').checked && !shop.get_ele('r_oncash').checked) {
+                    alert('Chưa chọn loại thẻ cào');
+                    return false;
+                }
+                else {
+                    if (jQuery('#r_vinaphone').is(":checked"))      objService.card_type = 'vinaphone';
+                    else if (jQuery('#r_mobifone').is(":checked"))  objService.card_type = 'mobifone';
+                    else if (jQuery('#r_viettel').is(":checked"))   objService.card_type = 'viettel';
+                    else if (jQuery('#r_vcoin').is(":checked"))     objService.card_type = 'vcoin';
+                    else if (jQuery('#r_oncash').is(":checked"))    objService.card_type = 'oncash';
+                }
+
+                seri = shop.util_trim(frm.r_seri.value);
+                code = shop.util_trim(frm.r_card_number.value);
+
+                if (seri == '')
+                {
+                    alert('Bạn chưa nhập số seri của thẻ cào');
+                    return false;
+                }
+
+                if (code == '') {
+                    alert('Chưa nhập mã số thẻ cào');
+                    return false;
+                }
+                else if (code.length < 12) {
+                    alert('Mã số thẻ không hợp lệ');
+                    return false;
+                }
+
+                var data = "email_pay=" + user_info.email;
+                data += "&fullname=" + user_info.fullname;
+                data += "&mobile=" + user_info.mobile;
+                data += "&sum_money_cart=" + objService.price_upitem;
+                data += "&card_type=" + objService.card_type;
+                data += "&card_code=" + code;
+                data += "&card_seri=" + seri;
+                data += "&cartId=" + objService.cartId;
+                data += "&keyUpItem=" + objService.packageUp;
+                data += "&ad_id=" + ad_id;
+                data += "&position_vip_sub=" + objService.position_vip_sub;
+
+                var code_act = "card_payment";
+                if(objService.pay_type == 4){ //thanh toán thẻ cào tin vip
+                    code_act = "card_payment_vip";
+                }
+
+                var strBtnOn    = ('<div class="buttonBox buttonNext" onclick="objService.recharge();" title="Nạp thẻ">Nạp thẻ</div>');
+                var strBtnOff   = ('<div class="buttonBox buttonNext" title="Nạp thẻ">Nạp thẻ</div>');
+                jQuery('#btRecharge').attr('innerHTML', strBtnOff);
+                jQuery('#loading_pay').show();
+                jQuery('#loadingTitleDiv').show();
+                jQuery.ajax({
+                    type: "POST",
+                    url:"ajax.php@act=service&code=" + code_act,
+                    data: data,
+                    dataType: 'json',
+                    success: function(json) {
+                        jQuery('#loadingTitleDiv').hide();
+                        jQuery('#loading_pay').hide();
+                        //Chưa nạp đủ tiền
+                        if (json.isOk == 1) {
+                            var money_less = json.sum_money_cart - json.total_price;
+                            var note = "Quý khách cần nạp thêm <strong>" + number_format(money_less) + " VNĐ</strong>";
+                            var strContent2 = '<div align="left">'
+                                + '<div id="pTop5" class="newCustomerInfo mTop5">'
+                                + '<div style="margin-left:30px" class="card_type">'
+                                + 'Quý khách vừa nạp thành công thẻ:<strong>' + number_format(json.price) + ' VNĐ</strong>.<br/>' + note
+                                + '</div>'
+                                + '</div>'
+                                + '</div>';
+
+                            var strContent1 = 'Tổng số tiền Quý khách đã nạp:<strong>' + number_format(json.total_price) + ' VNĐ</strong>';
+                            //var strContent2 ='Quý khách vừa nạp thành công thẻ:<strong>'+number_format(json.price) +' VNĐ</strong>.<br/>'+note;
+
+                            jQuery('#msg_cart').attr('innerHTML', strContent1);
+                            jQuery('#complete').attr('innerHTML', strContent2);
+
+
+                            jQuery('#btRecharge').attr('innerHTML', strBtnOn);
+                        }
+                        //Đã nạp đủ
+                        else if (json.isOk == 2) {
+
+                            //Ghi log click mua dịch vụ tin đăng
+                            if(objService.pay_type == 4) { //thanh toán thẻ cào tin vip
+                                objService.statistic_click(3, ad_id); //Tin VIP = 3
+                            }
+                            else {
+                                objService.statistic_click(2, ad_id); //Tin lên trang 1 = 2
+                            }
+
+
+                            var sub = '';
+
+                            if(json.gold_char > 0)
+                            {
+                                sub = "- Số tiền dư : " + number_format(json.sub_price) + ' đ được quy đổi thành '+number_format(json.gold_char)+ ' Gold và đã nạp vào tài khoản của Quý khách!';
+                            }
+                            else if (json.sub_price > 0) {
+                                sub = "- Số tiền dư : " + number_format(json.sub_price) + ' sẽ được cộng tiếp vào đơn hàng này của Quý khách !';
+                            }
+                            alert("- Quý khách đã nạp đủ số tiền, cảm ơn Quý khách đã sử dụng dịch vụ của chúng tôi.\n" + sub);
+                            //shop.hide_overlay_popup('cart-recharge');
+                            if(json.validate)
+                                alert("Tin rao của bạn có từ cần kiểm duyệt! Nếu hợp lệ tin của bạn sẽ được đăng trong thời gian sớm nhất!\n");
+
+                            /*if (typeAlert == 1) window.location = WEB_DIR + "@page=item";
+                            else if (typeAlert == 2) window.location = WEB_DIR + "@page=detail&ad_id=" + item_id;
+                            else {*/
+                                //location.reload();
+                                window.location = WEB_DIR + "@page=detail&ad_id=" + ad_id;
+                            //}
+                        }
+                        //Lỗi nạp thẻ
+                        else {
+                            if (json.locked) {
+                                alert(json.errors);
+                                location.reload();
+                            }
+                            else {
+                                alert(json.errors);
+                                jQuery('#btRecharge').attr('innerHTML', strBtnOn);
+                            }
+                        }
+                    }
+                });
+            }
+            return false;
+        },
+
+
+        //Hoàn thành thanh toán bằng gold
+        finishPaymentByGold: function() {
+            var data = "email_pay=" + user_info.email;
+                data += "&fullname=" + user_info.fullname;
+                data += "&mobile=" + user_info.mobile;
+                data += "&sum_money_cart=" + objService.price_upitem;
+                data += "&cartId=" + objService.cartId;
+
+                jQuery('#loadingTitleDiv').show();
+                jQuery.ajax({
+                    type: "POST",
+                    url:"ajax.php@act=service&code=payment_gold",
+                    data: data,
+                    dataType: 'json',
+                    success: function(data) {
+                        jQuery('#loadingTitleDiv').hide();
+
+                        if(data.msg == 'not_login')
+                        {
+                            alert("Hãy đăng nhập trước khi sử dụng chức năng này")
+                            return false;
+                        }
+                        else if(data.msg == 'no_perm')
+                        {
+                            alert('Bạn không có quyền thực hiện chức năng này');
+                            return false;
+                        }
+                        else if(data.msg == 'error')
+                        {
+                            alert('Có lỗi trong quá trình thanh toán giỏ hàng, mời bạn thử lại sau.');
+
+                            window.location.reload();
+                            return false;
+                        }
+                        else if(data.msg == 'payed')
+                        {
+                            alert('Giỏ hàng có ID '+ data.cart_id +' này đã được thanh toán rồi, bạn không thể thanh toán giỏ hàng này nữa!');
+
+                            window.location.reload();
+                            return false;
+                        }
+                        else if(data.msg == 'over_price')
+                        {
+                            alert('Số Gold trong tài khoản của quý khách là ' + number_format(data.gold_user) + ' Gold, không đủ để thanh toán giỏ hàng có ID ' +data.cart_id+ ' này!');
+
+                            window.location.reload();
+                            return false;
+                        }
+                        else if(data.msg != '')//Error
+                        {
+                            alert(data.msg);
+                        }
+                        else//Succes
+                        {
+                            //Ghi log click mua dịch vụ tin đăng
+                            objService.statistic_click(2, ad_id); //Tin lên trang 1 = 2
+                            pay_cancel();
+
+                            alert("Bạn đã thanh toán thành công giỏ hàng có ID "+ data.cart_id +", số Gold bị trừ vào tài khoản " +data.user_name+ " là " + number_format(data.gold_used) + " Gold!\nTài khoản của bạn còn: " + number_format(data.gold_user) + " Gold\n\nCám ơn bạn đã sử dụng dịch vụ của RồngBay!");
+
+                            //window.location.reload();
+                            window.location = WEB_DIR + "@page=detail&ad_id=" + ad_id;
+                        }
+                    }
+                });
+                return false;
+        },
+        //1. CÁC MÀN HÌNH MUA LƯỢT LÊN TRANG 1===================================================
+
+        //2. CÁC MÀN HÌNH MUA TIN TRỌN ĐỜI=======================================================
+        //Form mua tin trọn đời
+        popup_item_package : function() {
+            //pay_cancel();
+            /*if (objService.tmp_item_package != null) {
+                pay_popup(objService.tmp_item_package);
+                return
+            }*/
+            jQuery('#loadingTitleDiv').show();
+            jQuery.ajax({
+                type: "POST",
+                url: "ajax.php@act=service&code=popup_item_package",
+                data: "item_id="+ad_id,
+                dataType: "json",
+                success: function(json){
+                    jQuery('#loadingTitleDiv').hide();
+                    objService.tmp_item_package = json.temp;
+                    pay_popup(json.temp);
+                }
+            });
+        },
+        //2. CÁC MÀN HÌNH MUA TIN TRỌN ĐỜI=======================================================
+
+
+        //2. CÁC MÀN HÌNH MUA TIN VIP=======================================================
+        //Form mua tin VIP
+        popup_buy_vip : function(ad_id_in, buy_page, cat_id, city_id, position, p_cat_id) { //buy_page = 1 mua tin ở trang list, position vị trí vip = 1 đầu, = 2 cuối
+            objService.type_service = 3;
+            jQuery('#loadingTitleDiv').show();
+            if(ad_id_in != undefined){
+                item_id = ad_id_in;
+                ad_id = ad_id_in;
+            }
+
+            /*if(ad_id_in != undefined){
+             ad_id = ad_id_in;
+             }
+             else{
+             if(objService.tmp_buy_vip != null){
+             jQuery('#loadingTitleDiv').hide();
+             pay_popup(objService.tmp_buy_vip);
+
+             jQuery('#position_vip_sub').val(objService.position_vip_sub);
+
+             if(typeof arr_js_price !=="undefined" && arr_js_price.length)
+             {
+             jQuery(".total_money_vip").html(number_format(arr_js_price[objService.position_vip_sub],0,',','.')+" đ");
+             }
+
+             objService.choice_day_vip(objService.position_vip_sub);
+
+             return
+             }
+             }*/
+
+            if(buy_page == undefined){
+                buy_page = objService.buy_page;
+            }
+
+            if(cat_id == undefined){
+                cat_id  = 0;
+                city_id = 0;
+            }
+
+            objService.buy_page = buy_page;
+
+            if(position == undefined){
+                position = 1;
+            }else{
+                objService.position = position;
+            }
+
+            /*if(p_cat_id == undefined){ //nhu cầu mục ô tô = 1 là tất cả, xe mới, xe cũ
+             p_cat_id = 0;
+             }else{
+             objService.p_cat_id = p_cat_id;
+             }*/
+
+            p_cat_id = objService.p_cat_id;
+
+            jQuery.ajax({
+                type: "POST",
+                url: "ajax.php@act=service&code=popup_buy_vip",
+                data: "ad_id="+ad_id + "&buy_page=" + objService.buy_page + "&cat_id=" + cat_id + "&city_id=" + city_id + "&position=" + position + "&p_cat_id=" + p_cat_id + "&position_vip_sub="+objService.position_vip_sub,
+                dataType: "json",
+                success: function(json){
+                    if(json.temp == "not_item"){
+                        alert("Tin đăng không tồn tại");
+                        return false;
+                    }
+
+                    jQuery('#loadingTitleDiv').hide();
+                    objService.tmp_buy_vip = json.temp;
+                    pay_popup(json.temp);
+                }
+            });
+        },
+
+        //Mua tin VIP tu trang list
+        popup_buy_vip_list : function ()
+        {
+            /*if(!IS_LOGIN){
+                alert('Bạn cần đăng nhập trước khi sử dụng chức năng này.');
+                openMyModal( BASE_URL + 'mingid/ming_request.php',600,800);
+                return;
+            }*/
+            jQuery('#loadingTitleDiv').show();
+
+            jQuery.ajax({
+                type: "POST",
+                url: WEB_DIR+"ajax.php@act=service&code=popup_buy_vip_list",
+                dataType: 'json',
+                success: function(data)
+                {
+                    jQuery('#loadingTitleDiv').hide();
+
+                    var html1 = '<div id="cart-check-out-step1" style="margin:0 auto;width:580px;text-align:left"><div style="background-color: transparent;"><div style="padding: 0px; color: black; font-size: 12px; height: auto; display: block;" id="popup-container"><div class="classic-popup_eb"><div class="classic-popup-top_eb"><div class="right_eb"><div class="bg_eb"></div></div></div><div class="classic-popup-main_eb"><div class="classic-popup-title_eb"><div class="fl_eb">Mua tin VIP</div><a onclick="pay_cancel();" title="Đóng" class="classic-popup-close_eb" href="javascript:void(0)">x</a><div class="c_eb"></div></div>';
+                    var html2 = '<div class="classic-popup-bottom_eb"><div class="right_eb"><div class="bg_eb"></div></div></div></div></div></div></div>';
+                    pay_popup(html1+data.template+html2);
+                }
+            });
+
+        },
+
+        //popup xem bảng giá tin vip
+        popup_view_buy_vip : function() {
+            /*if (objService.tmp_view_buy_vip != null) {
+                pay_popup(objService.tmp_view_buy_vip);
+                return
+            }*/
+            jQuery('#loadingTitleDiv').show();
+            var strdata = 'city_id='+jQuery("#ad_city_id option:selected").val();
+
+            if(jQuery(".ad_cat_id").length > 0){
+                strdata += '&ad_cat_id=' + jQuery(".ad_cat_id").val();
+            }else{
+                strdata += '&ad_cat_id=' + jQuery("#ad_cat_id option:selected").val();
+            }
+
+            jQuery.ajax({
+                type: "POST",
+                url: "ajax.php@act=service&code=popup_view_buy_vip",
+                data: strdata,
+                dataType: "json",
+                success: function(json){
+                    jQuery('#loadingTitleDiv').hide();
+                    objService.tmp_view_buy_vip = json.temp;
+                    pay_popup(json.temp);
+                }
+            });
+        },
+
+        //popup xem bảng giá tin vip faqs
+        popup_view_buy_vip_faqs : function() {
+            if (objService.tmp_view_buy_vip_faqs != null) {
+                pay_popup(objService.tmp_view_buy_vip_faqs);
+                return
+            }
+            jQuery('#loadingTitleDiv').show();
+            jQuery.ajax({
+                type: "POST",
+                url: "ajax.php@act=service&code=popup_view_buy_vip_faqs",
+                data: '',
+                dataType: "json",
+                success: function(json){
+                    jQuery('#loadingTitleDiv').hide();
+                    objService.tmp_view_buy_vip_faqs = json.temp;
+                    pay_popup(json.temp);
+                }
+            });
+        },
+
+        //popup send mail in detail car
+        popup_send_mail : function() {
+            if (objService.tmp_send_mail != null) {
+                pay_popup(objService.tmp_send_mail);
+                return
+            }
+            jQuery('#loadingTitleDiv').show();
+            jQuery.ajax({
+                type: "POST",
+                url: "ajax.php@act=service&code=popup_send_mail",
+                data: '',
+                dataType: "json",
+                success: function(json){
+                    jQuery('#loadingTitleDiv').hide();
+                    objService.tmp_send_mail = json.temp;
+                    pay_popup(json.temp);
+                }
+            });
+        },
+
+        //send mail in detail car
+        car_sent_to_friend : function()
+        {
+            var send_name = jQuery("#send_name").val();
+            var send_email = jQuery("#send_email").val();
+            var receive_email = jQuery("#receive_email").val();
+            var content = jQuery("#content").val();
+
+            if(!send_name)
+            {
+                alert("Bạn cần nhập tên người gửi");
+                jQuery("#send_name").focus();
+                return false;
+            }
+            else if(!send_email || !is_email(send_email))
+            {
+                alert("Email người gửi không chính xác");
+                jQuery("#send_email").focus()
+                return false;
+            }
+            else if(!receive_email || !is_email(receive_email))
+            {
+                alert("Email người nhận không chính xác");
+                jQuery("#receive_email").focus()
+                return false;
+            }
+            else if(!content)
+            {
+                alert("Nội dung không được để trống");
+                jQuery("#content").focus()
+                return false;
+            }
+            else
+            {
+                var data = "ad_id="+ad_id+"&send_name="+send_name+"&send_email="+send_email+"&receive_email="+receive_email+"&content="+content;
+                jQuery.ajax({
+                    type: "POST",
+                    url: WEB_DIR+"ajax.php@act=service&code=car_sent_to_friend",
+                    data: data,
+                    success: function(data)
+                    {
+                        if(data == "send_name_error")
+                        {
+                            alert("Bạn cần nhập tên người gửi");
+                            return false;
+                        }
+                        if(data == "send_email_error")
+                        {
+                            alert("Email gửi không chính xác");
+                            return false;
+                        }
+                        if(data == "receive_email_error")
+                        {
+                            alert("Email nhận không chính xác");
+                            return false;
+                        }
+                        if(data == "content_error")
+                        {
+                            alert("Nội dung không được để trống");
+                            return false;
+                        }
+                        if(data == "unsuccess")
+                        {
+                            alert("Không gửi được Email");
+                            return false;
+                        }
+                        else
+                        {
+                            alert("Gửi email thành công");
+                            pay_cancel();
+                        }
+                    }
+                });
+            }
+        },
+
+        //Thực hiện thanh toán mua tin VIP
+        submit_buy_vip : function() {
+
+            var item_id  = jQuery('#hd_item_id').val().trim();
+
+            if (jQuery('#position_vip_sub').length)
+            {
+                var position_vip_sub  = jQuery('#position_vip_sub').val().trim();
+            }
+
+            if(typeof position_vip_sub == "undefined")
+            {
+                var position_vip_sub = objService.position_vip_sub;
+            }
+
+            var type_day = jQuery('input:radio[name=type_day]:checked').val();
+            var position = jQuery('.position_car').val();
+
+            if(jQuery(".buy_vip_list").val() != undefined && jQuery(".buy_vip_list").val().trim() != ""){
+                item_id = jQuery(".buy_vip_list").val().trim();
+            }
+
+            if(type_day == undefined){
+                return;
+            }
+
+            if(item_id == undefined || !item_id || parseInt(item_id) == 0){
+                jQuery(".error_buy_vip").show();
+                jQuery(".error_buy_vip").text("Bạn chưa nhập ID tin hoặc link tin.");
+                return;
+            }
+
+            if(position != undefined && parseInt(position) > 0){
+                objService.position = position;
+            }
+
+            objService.vip_item_id = item_id;
+            objService.vip_type_day = type_day;
+            objService.position_vip_sub = position_vip_sub;
+            var txtPrice = jQuery('#type_day_' + type_day).attr('lang');
+            var strPrice = txtPrice.split(" ");
+            var strPrice1 = strPrice[0].replace(/\./g, ''); // replaces all '.'
+            objService.price_upitem = parseInt(strPrice1);
+
+            objService.position_vip_sub = type_day;
+
+            //Check vị trí tin VIP
+            jQuery('#loadingTitleDiv').show();
+            jQuery(".error_buy_vip").hide();
+            jQuery.ajax({
+                type: "POST",
+                url: "ajax.php@act=service&code=check_full_vip",
+                data: 'item_id=' + item_id + "&position=" + objService.position  + "&p_cat_id=" + objService.p_cat_id + "&position_vip_sub="+position_vip_sub ,
+                dataType: "json",
+                success: function(json){
+                    jQuery('#loadingTitleDiv').hide();
+                    //var countVIP = (typeof json[CURRENT_CITY_ID] != undefined)?json[CURRENT_CITY_ID].count : 0;
+
+                    if(typeof json.msg !== "undefined" && json.msg != undefined){
+                        jQuery(".error_buy_vip").show();
+                        jQuery(".error_buy_vip").text(json.msg);
+                        return false;
+                    }
+
+                    var p_cat_id = 0;
+                    if(typeof json.item_data !== 'undefined' && json.item_data != undefined){
+                        var item_data = json.item_data;
+                        objService.item_link = item_data['item_link'];
+                        objService.cate_name = item_data['cate_name'];
+                        objService.vip_item_id = item_data['item_id'];
+                        ad_id                  = item_data['item_id']; //có  objService.vip_item_id ko dùng mà lại dùng ad_id (ko hiểu lắm )
+                        ad_title               = item_data['item_title'];
+                        objService.price_upitem = item_data['pay_gold'];
+                        p_cat_id                = item_data['p_cat_id'];
+                    }
+
+                    objService.list_vip_cat = json.list_vip;
+
+                    /*if (typeof objService.list_vip_cat !== 'undefined') {
+                        var list_vip = objService.list_vip_cat;
+                        var city_id  = jQuery("#ad_city_id").val();
+
+                        if(json.cat_id == 19 && (parseInt(p_cat_id) == 69 || parseInt(p_cat_id) == 709 )){ //mục ô tô xe mới, xe cũ chỉ check 2 slot mỗi position trong chủng loại
+                            if(list_vip !== null && list_vip[CURRENT_CITY_ID] != undefined  && parseInt(list_vip[CURRENT_CITY_ID]['count']) >= 2){
+                                jQuery(".error_buy_vip").show();
+                                jQuery(".error_buy_vip").text("Đã đủ 2 tin cho vị trí này. Bạn hãy chọn vị trí khác");
+                                return;
+                            }
+
+                        }else{
+                            if(list_vip !== null && list_vip[CURRENT_CITY_ID] != undefined  && parseInt(list_vip[CURRENT_CITY_ID]['count']) >= 8){
+                                jQuery(".error_buy_vip").show();
+                                jQuery(".error_buy_vip").text("Đã đủ 8 tin cho chuyên mục này. Mời bạn quay lại sau");
+                                return;
+                            }
+                        }
+
+                    }*/
+
+                    if (typeof objService.list_vip_cat !== 'undefined') {
+                        var list_vip = objService.list_vip_cat;
+                        var city_id  = jQuery("#ad_city_id").val();
+
+                        if(json.cat_id == 19 && (parseInt(p_cat_id) == 69 || parseInt(p_cat_id) == 709 )){ //mục ô id_area xe mới, xe cũ chỉ check 2 slot mỗi position trong chủng loại
+                            if(list_vip !== null && list_vip[json.id_area] != undefined  && parseInt(list_vip[json.id_area]['count']) >= 2){
+                                jQuery(".error_buy_vip").show();
+                                jQuery(".error_buy_vip").text("Đã đủ 2 tin cho vị trí này. Bạn hãy chọn vị trí khác");
+                                return;
+                            }
+                        }else{
+                            if(list_vip !== null && list_vip[json.id_area] != undefined  && parseInt(list_vip[json.id_area]['count']) >= 8){
+                                jQuery(".error_buy_vip").show();
+                                jQuery(".error_buy_vip").text("Đã đủ 8 tin cho chuyên mục này. Mời bạn quay lại sau");
+                                return;
+                            }
+                        }
+
+                    }
+
+                    //Gọi màn hình chọn hình thức thanh toán
+                    objService.pay_upitem_type();
+                }
+            });
+
+            return;
+        },
+
+        //Thay đổi item khác
+        change_item_vip : function(type) {
+            var link_change_item_vip = (type==1)?'<a href="javascript:void(0);" class="link_ext" onclick="objService.load_item_vip(0);"> Sửa </a>-<a href="javascript:void(0);" class="link_ext" style="color: red !important;" onclick="objService.change_item_vip(0);">Hủy bỏ</a>':'<a href="javascript:void(0);" class="link_ext cl_red" onclick="objService.change_item_vip(1);"> - Chọn tin khác</a>';
+            var view_item_id = (type==1)?'<input type="text" value="'+ad_id+'" id="item_vip_id" name="item_vip_id" class="txt_item_vip" >':ad_id;
+            jQuery('#link_change_item_vip').html(link_change_item_vip);
+            jQuery('#view_item_id').html(view_item_id);
+        },
+
+        //Chọn kiểu ngày/tháng mua tin VIP
+        choice_day_vip : function(type) {
+            var total_vip = jQuery('#type_day_' + type).attr('lang');
+
+            jQuery('#type_day_'+type).attr("checked", true);
+            jQuery('.total_money_vip').text(total_vip);
+
+            objService.position_vip_sub = type;
+        },
+
+        //Chọn kiểu ngày/tháng mua tin VIP
+        choice_position_vip : function(obj) {
+           var id = obj.id;
+           var val_pos = jQuery("#"+id).val();
+
+           if(typeof arr_js_price !=="undefined")
+           {
+               jQuery(".total_money_vip").html(number_format(arr_js_price[val_pos],0,',','.')+" đ");
+           }
+        },
+
+        //load item vip khác
+        load_item_vip : function(item_id) {
+            if (item_id == 0) item_id = jQuery('#item_vip_id').val();
+
+            if (isNaN(item_id)) {
+                alert("Id tin phải là dạng số");
+                return;
+            }
+            jQuery('#loadingTitleDiv').show();
+            jQuery.ajax({
+                type: "POST",
+                url: "ajax.php@act=service&code=load_item_vip",
+                data: "item_id="+item_id,
+                dataType: "json",
+                success: function(json){
+                    jQuery('#loadingTitleDiv').hide();
+                    if (json.error != "") {
+                        jQuery(".error_buy_vip").show();
+                        jQuery(".error_buy_vip").text(json.error);
+                        return;
+                    }
+
+                    ad_id = item_id;
+                    jQuery("#hd_item_id").val(item_id);
+                    jQuery(".total_money_vip").text(json.show_price);
+                    jQuery("#tbl_price_item_vip").html(json.table_vip);
+                    objService.change_item_vip(0);
+                }
+            });
+        },
+
+        //Form view vị trí tin VIP
+        popup_vip_display : function(cat_id,type) {
+            if (objService.tmp_vip_display != null) {
+                //pay_popup(objService.tmp_vip_display);
+                //return;
+            }
+
+            var icon_vip = 'exp.png';
+            if(cat_id != undefined){
+                if(type == 2){
+                    icon_vip = "vip_bottom.jpg";
+                }else{
+                    icon_vip = "vip_" + cat_id + ".jpg";
+                }
+            }
+
+            //Get template và set biến js  cartId
+            objService.tmp_vip_display = cart_join
+            ('<div id="cart-check-out-step1" style="margin:0 auto;width:802px;text-align:left">')
+            ('<div style="background-color: transparent;">')
+            ('<div style="padding: 0px; background:#FFF; padding:10px; font-size: 12px; height: auto; display: block; position: relative;" id="popup-container">')
+            ('<div><img src="style/images/service/btn-close.png" border="0" style="cursor: pointer; position: absolute; right: -17px; top:-17px;" onclick="objService.popup_buy_vip();" title="Đóng"></div>')
+            ('<div><img src="style/images/service/'+ icon_vip +'" border="0"></div>')
+            ('</div>')
+            ('</div>')
+            ('</div>')();
+
+            pay_popup(objService.tmp_vip_display);
+        },
+
+        get_vip_by_cat : function(ad_cat_id){
+
+            if(ad_cat_id != undefined){
+                var cat_id = ad_cat_id;
+            }else{
+                var cat_id = jQuery("#ad_cat_id").val();
+            }
+
+            var data   = 'cat_id=' + cat_id;
+            jQuery.ajax({
+                type: "POST",
+                url: "ajax.php@act=service&code=check_full_vip",
+                data: data,
+                dataType: "json",
+                success: function(json){
+                    objService.list_vip_cat = json.list_vip;
+                }
+            });
+        },
+
+        choose_item_cart : function(){
+            var flag = jQuery("input[name=check_item_cart]:checked").val();
+            if(!flag){
+                alert("Bạn chưa chọn tin để mua lượt lên trang 1.");
+                return;
+            }
+            objService.from_screen = 5;
+            jQuery(".notice_header").hide();
+            jQuery(".arrow_top_h").hide();
+            objService.is_show_rbd = 1;
+
+            if(jQuery("#num_pack_" + flag).val() != undefined){
+                var pack_up = jQuery("#num_pack_" + flag).val();
+                objService.popup_upitem(flag, pack_up);
+            }
+            else{
+                objService.popup_upitem(flag);
+            }
+
+        },
+
+        statistic_click: function(type_service, item_id) {
+            var from_screen = objService.from_screen;
+            if (from_screen == 0) {
+                //type_service: Kiểu dịch vụ: 1: Tin trọn đời, 2: Tin lên trang 1, 3: Tin VIP
+                var from_screen = parseInt(jQuery("#from_screen").val());
+            }
+
+            from_screen = (from_screen != 2 && from_screen != 3 && from_screen != 4 && from_screen != 5) ? 1 : from_screen;
+            //from_screen: Màn hình: 1: List, 2: Chi tiết, 3:
+
+            var data   = 'from_screen=' + from_screen;
+                data   += '&type_service=' + type_service;
+                data   += '&item_id=' + item_id;
+
+            jQuery.ajax({
+                type: "POST",
+                url: "ajax.php@act=service&code=statistic_click",
+                data: data,
+                dataType: "json",
+                success: function(json){}
+            });
+        },
+
+        buy_item_list : function(){
+            var item_id = jQuery("#item_id_list").val().trim();
+            jQuery(".error_vip_list").hide();
+            if(!item_id){
+                jQuery(".error_vip_list").show();
+                return;
+            }
+
+            objService.popup_buy_vip(item_id, 1);
+        },
+
+        active_item_gold : function(item_id){
+            if(item_id == undefined){
+                return;
+            }
+
+            var data  = 'item_id=' + item_id;
+            jQuery.ajax({
+                type: "POST",
+                url: "ajax.php@act=service&code=active_item_gold",
+                data: data,
+                dataType: "json",
+                success: function(json){
+                    if(json.msg == 'success'){
+                        alert("Kích hoạt tin thành công");
+                        location.reload();
+                    }else{
+                        alert(json.msg);
+                        return;
+                    }
+                }
+            });
+        },
+
+        //gán người đăng cho tin của khách vãng lai
+        popup_assign_ad_owner : function(ad_id) {
+            if(ad_id == undefined){
+                alert("Tin đăng không tồn tại");
+                return;
+            }
+
+            jQuery('#loadingTitleDiv').show();
+            jQuery.ajax({
+                type: "POST",
+                url: "ajax.php@act=service&code=popup_assign_ad_owner",
+                data: "ad_id=" + ad_id,
+                dataType: "json",
+                success: function(json){
+                    jQuery('#loadingTitleDiv').hide();
+
+                    pay_popup(json.template);
+                }
+            });
+        },
+
+        assign_ad_owner : function() {
+            var user_assign = jQuery(".ip_assign").val().trim();
+            var ad_assign   = jQuery(".ad_assign").val().trim();
+
+            if(user_assign == ''){
+                alert("Bạn chưa nhập ID hoặc email người đăng");
+                return;
+            }
+
+            if(ad_assign == ''){
+                alert("Tin đăng không tồn tại");
+                return;
+            }
+
+            jQuery.ajax({
+                type: "POST",
+                url: "ajax.php@act=service&code=assign_ad_owner",
+                data: "user_assign=" + user_assign + "&ad_assign=" + ad_assign,
+                dataType: "json",
+                success: function(json){
+                    if(json.msg == 'success'){
+                        alert("Gán tin đăng thành công");
+                        location.reload();
+                    }else{
+                        alert(json.msg);
+                        return;
+                    }
+                }
+            });
+        },
+
+        //popup các dịch vụ trong blog
+        popup_service_blog : function(type_service) { //type_service = 1 up tin, 2 - trọn đời, 3 - tin vip
+            if(type_service == undefined){
+                type_service = 1;
+            }
+
+            jQuery('#loadingTitleDiv').show();
+            jQuery.ajax({
+                type: "POST",
+                url: "ajax.php@act=service&code=popup_service_blog",
+                data: "type_service=" + type_service,
+                dataType: "json",
+                success: function(json){
+                    jQuery('#loadingTitleDiv').hide();
+
+                    pay_popup(json.template);
+                }
+            });
+        },
+
+        get_item_service_blog : function(type, type_service, item_id){ //type_service = 1 up tin, 2 - trọn đời, 3 - tin vip
+
+            if(type == undefined){ //type = 1 next step, = 0 get info item
+                type = 0;
+            }
+
+            //----------------- Check đã có id rồi chỉ việc chọn mua -----
+            if(type == 1 && item_id != undefined){
+                if(type_service == undefined){
+                    return;
+                }
+
+                if(type_service == 1){
+                    objService.popup_upitem(item_id);
+                    return;
+                }
+                else if(type_service == 2){
+                    ad_id = item_id;
+                    objService.popup_item_package();
+                    return;
+                }
+                else{
+                    objService.popup_buy_vip(item_id, 1);
+                    return;
+                }
+            }
+            //----------------- END check đã có id  -----
+
+            var item_id = jQuery("#item_service_blog").val().trim();
+            if(item_id == ''){
+                return;
+            }
+
+            jQuery.ajax({
+                type: "POST",
+                url: "ajax.php@act=service&code=get_item_service_blog",
+                data: "item_id=" + item_id + "&type=" + type,
+                dataType: "json",
+                success: function(json){
+                    if(json.msg != undefined){
+                        alert(json.msg);
+                        return;
+                    }
+
+                    if(type == 1){
+                        if(type_service == undefined){
+                            return;
+                        }
+
+                        if(type_service == 1){
+                            objService.popup_upitem(json.item_detail.ad_id);
+                            return;
+                        }
+                        else if(type_service == 2){
+                            ad_id = json.item_detail.ad_id;
+                            objService.popup_item_package();
+                            return;
+                        }
+                        else{
+                            objService.popup_buy_vip(json.item_detail.ad_id, 1);
+                            return;
+                        }
+
+                    }
+
+                    jQuery(".area_info_item_blog").show();
+                    jQuery(".item_title_blog").text(json.item_detail.item_title);
+                    jQuery(".item_cat_blog").text(json.item_detail.cate_name);
+                    jQuery(".item_id_blog").text(json.item_detail.ad_id);
+                    jQuery(".item_date_blog").text(json.item_detail.ad_create_date);
+                    jQuery(".item_view_blog").text(json.item_detail.ad_views);
+                }
+            });
+        },
+
+        /**
+         * Insert data nhận thông báo miễn phí
+         * @author: HieuTV - 23/09/2014
+         */
+        submit_request_feedback: function() {
+            //reset form error
+            jQuery("#notice_error").html("").hide();
+
+            var ad_cat_id = parseInt(jQuery("#ad_cat_id option:selected").val());
+            if (ad_cat_id == 0) {
+                jQuery("#notice_error").html("Hãy chọn 1 chuyên mục!").show();
+                jQuery("#ad_cat_id").focus();
+                return;
+            }
+            var city = parseInt(jQuery("#id_cities").val());
+            if (city == 0) {
+                jQuery("#notice_error").html("Hãy chọn 1 tỉnh/thành phố!").show();
+                jQuery("#id_cities").focus();
+                return;
+            }
+
+            var email = jQuery("#email").val();
+            if (email == '') {
+                jQuery("#notice_error").html("Hãy nhập email!").show();
+                jQuery("#email").focus();
+                return;
+            }
+            else if (!is_email(email)) {
+                jQuery("#notice_error").html("Email không hợp lệ!").show();
+                jQuery("#email").focus();
+                return;
+            }
+
+            var mobile = jQuery("#mobile").val();
+            if (mobile == '') {
+                jQuery("#notice_error").html('Chưa nhập Số điện thoại').show();
+                jQuery("#mobile").focus();
+                return;
+            }
+            else if (isNaN(mobile)) {
+                jQuery("#notice_error").html('Điện thoại phải là số viết liền\nKhông chứa ký tự đặc biệt').show();
+                jQuery("#mobile").focus();
+                return;
+            }
+            else if (mobile.length >= 15 || mobile.length <= 8) {
+                jQuery("#notice_error").html('Độ dài số điện thoại phải >8 và <15 ký tự').show();
+                jQuery("#mobile").focus();
+                return;
+            }
+
+            var ad_id_pcat = parseInt(jQuery("#ad_id_pcat").val());
+            var ad_id_subcat = parseInt(jQuery("#ad_id_subcat").val());
+
+            jQuery('#loadingTitleDiv').show();
+            jQuery.ajax({
+                type: "POST",
+                url: "ajax.php@act=faq&code=submit_request_feedback",
+                data: "ad_cat_id="+ad_cat_id+"&ad_id_pcat="+ad_id_pcat+"&ad_id_subcat="+ad_id_subcat+"&id_cities="+city+"&email="+email+"&mobile="+mobile,
+                dataType: "json",
+                success: function(json) {
+                    jQuery('#loadingTitleDiv').hide();
+
+                    if (json.msg != null) {
+                       alert(json.msg);
+                    }else{
+                       alert(json.error);
+                    }
+                    location.reload();
+                }
+            });
+        },
+
+        select_position_vip: function(position) { // 1: top, 2: bottom
+            objService.position = position;
+
+            jQuery.ajax({
+                type: "POST",
+                url: "ajax.php@act=service&code=get_table_vip_price_position",
+                data: "item_id="+item_id+"&cat_id="+cat_id+"&city_id="+city_id+"&position_vip_sub="+position_vip_sub+"&p_cat_id="+p_cat_id+"&position="+position,
+                dataType: "json",
+                success: function(json) {
+                    jQuery("#tbl_price_item_vip").html(json.temp);
+                    jQuery(".total_money_vip").html(json.show_price);
+                }
+            });
+        }
+    }
+}

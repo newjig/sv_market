@@ -1,0 +1,931 @@
+var book_marks	= "";
+var book_marks_arr	= [];
+var city_txt= '';//Nơi đăng
+var city2_txt= '';//Quê quán
+var cate_selected_id= '';//danh mục chọn
+var real_url = window.location.toString();
+
+jQuery(document).ready(function(){
+    book_marks = jQuery.cookie('book_marks');//Các tin đã lưu
+
+    if(!book_marks)
+    {
+        book_marks = '';
+    }
+
+    if(book_marks != '')
+    {
+        book_marks_arr = book_marks.split(',');
+        total_book_marks = parseInt(book_marks_arr.length);
+    }
+});
+
+function book_mark_item(o, ad_id, type)
+{
+    var strIdBM = "";
+
+    if(IS_LOGIN != undefined && IS_LOGIN == 0){//chưa đăng nhập lưu cookie
+        jQuery('#'+o.id).attr('title', 'Bỏ lưu tin');
+        if(typeof(book_marks) != "undefined" && book_marks != "")
+        {
+            //Bỏ đánh dấu
+            if(jQuery("#"+ o.id).hasClass("sticky")==true || jQuery("#"+ o.id).hasClass("saved")==true)
+
+            {
+                //Bỏ đánh dấu
+                if(jQuery("#"+ o.id).hasClass("sticky")==true || jQuery("#"+ o.id).hasClass("saved")==true)
+                {
+                    if(type == 0)
+                    {
+                        jQuery("#ad_item_"+ad_id).removeClass("sticky");
+                        jQuery("#ad_item_"+ad_id).addClass("notsticky");
+                    }
+                    else if(type == 1)
+                    {
+                        jQuery("#ad_item_"+ad_id).removeClass("saved");
+                        jQuery("#ad_item_"+ad_id).addClass("save");
+                        jQuery("#ad_item_"+ad_id).html("Lưu lại");
+                    }
+
+                    for(var i in book_marks_arr)
+                    {
+                        if(parseInt(ad_id) != parseInt(book_marks_arr[i]))
+                        {
+                            strIdBM += ","+book_marks_arr[i];
+                        }
+                    }
+                    if (strIdBM) {
+                        book_marks = strIdBM.substring(1, strIdBM.length);
+                        book_marks_arr = book_marks.split(',');
+                    }
+                    else {
+                        book_marks = "";
+                        book_marks_arr	= [];
+                    }
+                jQuery('#'+o.id).attr('title', 'Lưu tin');
+
+                    if (book_marks_arr.length == 0)
+                    {
+                        jQuery('#notice_item_save').css("display", "none");
+                    }
+                    else {
+                        var count = book_marks_arr.length;
+                        jQuery('#number_item_save').html(count);
+                        if(count > 0){
+                            jQuery('#notice_item_save').css("display","block");
+                        }
+                    }
+
+                    jQuery.cookie('book_marks', book_marks, {path: 'default.htm',domain: '', expires: 365});
+                    return;
+                }
+                //End bỏ đánh dấu
+            }
+
+            if(type == 0) // Ở trang list
+            {
+                if(document.getElementById("ad_item_"+ad_id) != null)
+                {
+                    document.getElementById("ad_item_"+ad_id).className="bookmark sticky";
+                }
+            }
+            else if(type == 1) // Ở trang chi tiết
+            {
+                if(document.getElementById("ad_item_"+ad_id) != null)
+                {
+                    jQuery("#ad_item_"+ad_id).removeClass("save");
+                    jQuery("#ad_item_"+ad_id).addClass("saved");
+                    jQuery("#ad_item_"+ad_id).html("Đã lưu");
+                }
+            }
+
+            // Lưu cookies
+            book_marks = (book_marks == '') ? ad_id : ad_id+','+book_marks;
+            book_marks_arr[book_marks_arr.length] = ad_id;
+            total_book_marks = parseInt(book_marks_arr.length);
+
+            var count = book_marks_arr.length;
+            if (book_marks=="" || book_marks_arr.length==1) {
+                jQuery('#notice_item_save').css('display', 'block');
+                jQuery('#number_item_save').css('display', 'block');
+            }
+            jQuery('#number_item_save').html(count);
+
+            jQuery.cookie('book_marks', book_marks, {path: 'default.htm', domain: '', expires: 365});
+        }
+
+    }else if(IS_LOGIN != undefined && IS_LOGIN > 0){
+        //Bỏ đánh dấu
+        if(jQuery("#"+ o.id).hasClass("sticky")==true || jQuery("#"+ o.id).hasClass("saved")==true){
+            jQuery.ajax({
+                type: "POST",
+                url: WEB_DIR+"ajax.php@act=item&code=remove_bookmark",
+                data: {ad_id:ad_id},
+                dataType: 'json',
+                success: function(data){
+                    jQuery('#ad_item_' + ad_id).removeClass('sticky').addClass('notsticky');
+                    var count = parseInt(jQuery('#number_item_save').html().trim());
+                    if(count != undefined && count > 0){
+                        jQuery('#number_item_save').html(count - 1);
+                    }else{
+                        jQuery('#number_item_save').html('');
+                    }
+
+                    if(count <= 1){
+                        jQuery('#notice_item_save').attr('style', 'display: none !important');
+                    }
+                }
+            });
+
+        }else{
+            jQuery.ajax({
+                type: "POST",
+                url: WEB_DIR+"ajax.php@act=item&code=bookmark",
+                data: {ad_id:ad_id},
+                dataType: 'json',
+                success: function(data){
+                    jQuery('#ad_item_' + ad_id).removeClass('notsticky').addClass('sticky');
+                    if(data.msg == 'saved'){
+                        var count = parseInt(jQuery('#number_item_save').html().trim());
+                        jQuery('#notice_item_save').attr('style', 'display: block !important');
+                        if(count != undefined && count > 0){
+                            jQuery('#number_item_save').html(count + 1);
+                        }else{
+                            jQuery('#number_item_save').html(1);
+                        }
+
+                        jQuery('#ad_item_' + ad_id).removeClass('save').addClass('saved');//check bm item detail
+                    }
+                }
+            });
+        }
+    }
+}
+
+function onSelectCatJob(job_cat_id, cat_id, type) {
+    jQuery.ajax({
+        type: "POST",
+        url: WEB_DIR+"ajax.php@act=item&code=view_item_by_job",
+        data: {type:type, job_cat_id:job_cat_id, cat_id:cat_id},
+        dataType: 'json',
+        success: function(data)
+        {
+            document.location = data.url;
+        }
+    });
+}
+
+//Thêm mới tin tìm việc và tuyển dụng
+function updateItemJob(type) {
+    //jQuery("#btnSave").removeAttr('onclick');
+    //jQuery("#btnSave").css('background','#999');
+    var cmd = (type==1)?'ad_new':'ad_update';
+
+    jQuery('#loadingTitleDiv').show();
+    //Gọi query insert form nhập
+    jQuery.ajax({
+        type: "POST",
+        url: WEB_DIR+"ajax.php@act=job&code=insert_item_job&cmd="+cmd,
+        data: jQuery("#postService").serialize(),
+        dataType: 'json',
+        success: function(data)
+        {
+            //jQuery("#btnSave").add("onclick", 'updateItemJob('+type+')');
+            //jQuery("#btnSave").css('background','#236489');
+            jQuery('#loadingTitleDiv').hide();
+
+            if (data.msg) {
+                alert(data.msg);
+            }
+            else {
+                if(data.website_id && data.cat_rbname)
+                {
+                    newItemLog(data.cat_rbname, data.website_id);
+                }
+
+                if (data.url) document.location = data.url;
+            }
+        }
+    });
+}
+
+var job_info = {sub_cat:0, cat_id:0, type:0, tmp:0}
+
+function select_job_cat(sub_cat, cat_id, type, tmp) {
+    job_info.sub_cat = sub_cat;
+    job_info.cat_id = cat_id;
+    job_info.type = type;
+    job_info.tmp = tmp;
+}
+function start_post_item() {
+    if (job_info.cat_id==0) {
+        alert("Hãy chọn 1 chuyên mục cần đăng tin"); return;
+    }
+    post_select_job_cat(job_info.sub_cat, job_info.cat_id, job_info.type, job_info.tmp);
+}
+
+//click on cate in post item
+function post_select_job_cat(sub_cat, cat_id, type, tmp) {
+    if (sub_cat == 0 || cat_id == 0 || type == 0) return;
+    cate_selected_id = cat_id;
+
+    var cat1 = all_cats[cat_id].cat_name;
+
+    jQuery('#cat2').css('color','#444444');
+    jQuery('#cat3').css('color','#444444');
+
+    if (type == 1) {
+        var cat2 = all_cats_job[all_cats_job[sub_cat].priv_parent_id].priv_name;
+        var cat3 = all_cats_job[sub_cat].priv_name;
+        jQuery('#job_cate_id').val(sub_cat);
+        jQuery('#job_cate_id_hd').val(sub_cat);
+
+        if (tmp==1) {
+            sub_cat = (cat_id==69)?84:186;
+        }
+        else if (tmp==2) {
+            sub_cat = (cat_id==264)?85:187;
+        }
+        jQuery('#cat3').css('color','#006EBA');
+    }
+    else if (type == 2) {
+        var cat2 = all_p_cats[cat_id][sub_cat].s_name;
+        jQuery('#ad_id_pcat').val(sub_cat);
+        jQuery('#ad_id_pcat_hd').val(sub_cat);
+
+        if (cat_id==287 && (sub_cat==722 || sub_cat==724 || sub_cat==726 || sub_cat==728)) {
+            jQuery('#year_contact').show();
+            jQuery('#dist_contact').show();
+            jQuery('#contact_1').show();
+            jQuery('#contact_2').hide();
+
+        }
+        else {
+            jQuery('#year_contact').hide();
+            jQuery('#dist_contact').hide();
+            jQuery('#contact_1').hide();
+            jQuery('#contact_2').show();
+        }
+        jQuery('#cat2').css('color','#006EBA');
+    }
+
+    show_notice_pay_job(cate_selected_id, sub_cat);
+
+    jQuery('#tmp').val(tmp);
+    jQuery('#ad_cat_id').val(cat_id);
+    jQuery('#ad_cat_id_hd').val(cat_id);
+
+    _showStep2();
+
+    jQuery('#cat1').html(cat1);
+    jQuery('#cat2').html(cat2);
+    jQuery('#cat3').html(cat3);
+}
+
+function _showStep1() {
+    if (document.getElementById('guide_1') != null)
+        document.getElementById('guide_1').className = 'stepActive';
+    if (document.getElementById('guide_2') != null)
+        document.getElementById('guide_2').className = 'stepNotactive';
+    if (document.getElementById('guide_3') != null)
+        document.getElementById('guide_3').className = 'stepNotactive';
+
+    jQuery('#post_step_1').show();
+    jQuery('#post_step_2').hide();
+    jQuery('#post_step_3').hide();
+    jQuery('#change_category_link').hide();
+    jQuery('#title_step_2').hide();
+    jQuery('#title_step_1').show();
+
+    var urlInfo = real_url.split('?');
+
+    var ad_id = (parseInt(jQuery('#ad_id').val())>0)?('@ad_id='+jQuery('#ad_id').val()):'';
+    window.history.pushState('','',urlInfo[0]+ad_id);
+}
+function _showStep2() {
+    if (document.getElementById('guide_1') != null)
+        document.getElementById('guide_1').className = 'stepNotactive';
+    if (document.getElementById('guide_2') != null)
+        document.getElementById('guide_2').className = 'stepActive';
+    if (document.getElementById('guide_3') != null)
+        document.getElementById('guide_3').className = 'stepNotactive';
+
+    jQuery('#post_step_1').hide();
+    jQuery('#post_step_2').show();
+    jQuery('#post_step_3').hide();
+    jQuery('#btnSave').removeAttr('disabled')
+
+    if (parseInt(jQuery('#ad_id').val()) > 0) jQuery('#change_category_link').hide();
+    else jQuery('#change_category_link').show();
+
+    jQuery('#title_step_1').hide();
+    jQuery('#title_step_2').show();
+
+    var urlInfo = real_url.split('?');
+    var ad_id = parseInt(jQuery('#ad_id').val());
+    if (ad_id > 0) {
+        window.history.pushState('','',urlInfo[0]+"@ad_id="+ad_id);
+    }
+    else {
+        window.history.pushState('','',urlInfo[0]+"@step=input");
+        window.addEventListener("popstate", function(e) {
+            _showStep1();
+        });
+    }
+}
+function _showStep3() {
+    if (document.getElementById('guide_1') != null)
+        document.getElementById('guide_1').className = 'stepNotactive';
+    if (document.getElementById('guide_2') != null)
+        document.getElementById('guide_2').className = 'stepNotactive';
+    if (document.getElementById('guide_3') != null)
+        document.getElementById('guide_3').className = 'stepActive';
+
+    jQuery('#post_step_1').hide();
+    jQuery('#post_step_2').hide();
+    jQuery('#post_step_3').show();
+    jQuery('#change_category_link').hide();
+
+    var urlInfo = real_url.split('?');
+    window.history.pushState('','',urlInfo[0]+"@step=confirm");
+    window.addEventListener("popstate", function(e) {
+        _showStep2();
+    });
+}
+
+function confirmPost(tmp, back) {
+    if (back != 1) {
+        var check = validatePostJob(tmp);
+        if (check == false) return;
+    }
+
+    _showStep3();
+
+    showConfirmData();
+}
+
+function showConfirmData() {
+    if (cate_selected_id==287 || cate_selected_id==295) {
+        var d = new Date();
+        var year = d.getFullYear();
+        var year_confirm = (parseInt(jQuery('#year_contact_hd').val())>0)?parseInt(year) - parseInt(jQuery('#year_contact_hd').val()):0;
+
+        jQuery('#cate_'+cate_selected_id).show();
+        if (year_confirm>0) {
+            jQuery('#year_confirm').html("-"+year_confirm+" tuổi");
+        }
+        if (city2_txt != '--') {
+            jQuery('#cbo_district_confirm').html("<b>Quê quán: </b>"+city2_txt);
+        }
+
+        jQuery('#job_contact_fullname_confirm2').html(jQuery('#job_contact_fullname_hd').val());
+        jQuery('#job_contact_address_confirm2').html(jQuery('#job_contact_address_hd').val());
+        jQuery('#user_mobile_confirm2').html(jQuery('#user_mobile_hd').val());
+        jQuery('#date_confirm').html(d.getDate()+"."+(d.getMonth()+1)+"."+ d.getFullYear());
+    }
+
+    var gender = (parseInt(jQuery('#gender_hd').val())==1)?"Nam":"Nữ";
+    var married = (parseInt(jQuery('#married_hd').val())==1)?"Đa có gia đình":"Độc thân";
+    jQuery('#ad_title_confirm').html(jQuery('#ad_title_hd').val());
+    jQuery('#fullname_confirm').html(jQuery('#fullname_hd').val());
+    jQuery('#birthday_confirm').html(jQuery('#birthday_hd').val());
+    jQuery('#gender_confirm').html(gender);
+    jQuery('#married_confirm').html(married);
+    jQuery('#job_ask_confirm').html(jQuery('#job_ask_hd').val());
+    jQuery('#ad_description_confirm').html(jQuery('#ad_description_hd').val());
+    jQuery('#job_model_confirm').html(arr_job_model[parseInt(jQuery('#ad_cat_id_hd').val())][parseInt(jQuery('#job_model_hd').val())]);
+    jQuery('#job_salary_confirm').html((jQuery('#job_salary_hd').val()=='0'?'Thỏa thuận':jQuery('#job_salary_hd').val()));
+    jQuery('#ad_city_id_confirm').html(city_txt);
+    jQuery('#job_contact_fullname_confirm').html(jQuery('#job_contact_fullname_hd').val());
+    jQuery('#user_mobile_confirm').html(jQuery('#user_mobile_hd').val());
+    jQuery('#job_contact_email_confirm').html(jQuery('#job_contact_email_hd').val());
+
+    if (jQuery('#job_date_expire_hd').val() != '') {
+        jQuery('#job_date_expire_confirm').html('<b>Hạn nộp hồ sơ:</b> '+jQuery('#job_date_expire_hd').val());
+    }
+    if (jQuery('#job_contact_address_hd').val() != '') {
+        jQuery('#job_contact_address_confirm').html('<b>Địa chỉ:</b> '+jQuery('#job_contact_address_hd').val());
+    }
+
+    var check_package = parseInt(jQuery('#check_package').val());
+    if (check_package==1) {
+        jQuery('#package_notice').show();
+    }
+    else jQuery('#package_notice').hide();
+
+
+    jQuery('.inf').css('height',jQuery('.rec').height());
+    jQuery('html,body').animate({scrollTop: 0},0);
+}
+
+function select_model(type) {
+    var cateid = parseInt(jQuery('#ad_cat_id_hd').val());
+    var pcat = parseInt(jQuery('#ad_id_pcat_hd').val());
+    if (cateid==287 && (pcat==722 || pcat==724 || pcat==726 || pcat==728)) {
+        if (type==1) {
+            jQuery('#year_contact').show();
+            jQuery('#dist_contact').show();
+            jQuery('#contact_1').show();
+            jQuery('#contact_2').hide();
+        }
+        else {
+            jQuery('#year_contact').hide();
+            jQuery('#dist_contact').hide();
+            jQuery('#contact_1').hide();
+            jQuery('#contact_2').show();
+        }
+    }
+    else if (cateid==295) {
+        jQuery('#year_contact').hide();
+        jQuery('#dist_contact').hide();
+        jQuery('#contact_1').hide();
+        jQuery('#contact_2').show();
+    }
+}
+
+function checkSalary(o) {
+    if(jQuery('#'+ o.id).is(':checked')) {
+        jQuery('#job_salary_txt').attr('disabled','disabled');
+    }
+    else {
+        jQuery('#job_salary_txt').removeAttr('disabled');
+        jQuery('#job_salary_txt').focus();
+    }
+}
+
+function changeCategory() {
+    var urlInfo = real_url.split('?');
+    window.history.pushState('','',urlInfo[0]);
+    _showStep1();
+}
+
+function is_check_package_job(tmp) {
+    var tmp = parseInt(jQuery('#tmp').val());
+    if (jQuery("#check_package").val() == 0) {
+        jQuery("#check_package").val(1);
+        jQuery("#lbcheck").addClass("_check");
+        jQuery('#body_package').show();
+    }
+    else {
+        jQuery("#check_package").val(0);
+        jQuery("#lbcheck").removeClass("_check");
+        jQuery('#body_package').hide();
+    }
+}
+
+function show_notice_pay_job(cat_id, sub_selected)
+{
+    var catId = cat_id;
+    if (typeof cate_item_package != 'undefined') {
+        for(var i in cate_item_package){
+            if (cate_item_package[i].sub_cat==0)
+            {
+                if (catId == cate_item_package[i].cate_id) {
+                    jQuery("#price_item_package").html(number_format(cate_item_package[i].price)+" VNĐ");
+                    jQuery("#item_up_show").html(cate_item_package[i].up_show+" lần");
+                    jQuery("#label_notice1").html(cate_item_package[i].label_notice1);
+                    jQuery("#time_expire").html(cate_item_package[i].time_expire);
+
+                    jQuery('#body_package').hide();
+                    jQuery("#check_package").val(0);
+
+                    break;
+                }
+            }
+            else {
+                var sub_cate    = cate_item_package[i].sub_cat;
+                var up_show     = cate_item_package[i].up_show;
+                var up_total    = cate_item_package[i].up_total;
+                var time_expire = cate_item_package[i].time_expire;
+                var label_notice1 = cate_item_package[i].label_notice1;
+                var price       = cate_item_package[i].price;
+                for(var j in sub_cate){
+                    if (sub_selected == sub_cate[j]) {
+                        jQuery("#price_item_package").html(number_format(price[j])+" VNĐ");
+                        jQuery("#item_up_show").html(up_show[j]+" lần");
+                        jQuery("#label_notice1").html(label_notice1[j]);
+                        jQuery("#time_expire").html(time_expire[j]);
+
+                        jQuery('#body_package').hide();
+
+                        jQuery("#check_package").val(0);
+                        break;
+                    }
+                }
+            }
+        }
+        //Hiển thị notice tin nổi bật
+        var show_tip_item_top = 1;
+        for (var j in cate_top_item) {
+            if (catId == cate_top_item[j]) {
+                show_tip_item_top = 0;
+                break;
+            }
+        }
+        if (show_tip_item_top) {jQuery('#show_tip_item_top').show();}
+    }
+}
+
+function validatePostJob(tmp){
+    cate_selected_id = (cate_selected_id>0)?cate_selected_id:jQuery('#ad_cat_id_hd').val();
+
+    var ad_title    = jQuery('#ad_title').val();
+    var fullname    = jQuery('#fullname').val();
+    var birthday    = jQuery('#birthday').val();
+    var gender      = jQuery('input:radio[name=gender]:checked').val();
+    var married     = jQuery('input:radio[name=married]:checked').val();
+    var job_ask     = jQuery('#job_ask').val();
+    var job_model   = jQuery('#job_model').val();
+    var job_salary  = jQuery('#job_salary').val();
+    var ad_city_id  = jQuery('#ad_city_id').val();
+    var job_date_expire  = jQuery('#job_date_expire').val();
+    var job_salary_txt  = jQuery('#job_salary_txt').val();
+    var job_contact_fullname    = jQuery('#job_contact_fullname').val();
+    var job_contact_address     = jQuery('#job_contact_address').val();
+    var user_mobile             = jQuery('#user_mobile').val();
+    var job_contact_email       = jQuery('#job_contact_email').val();
+
+    //Năm sinh và Quê quán người giúp việc
+    if (cate_selected_id==287) {
+        city2_txt = jQuery("#cbo_district option:selected").text();//Quên quán
+        birthday  = jQuery('#cbo_birthday').val();
+        jQuery('#year_contact_hd').val(birthday);//Quê quán
+    }
+
+    city_txt = jQuery("#ad_city_id option:selected").text();
+
+    jQuery('#apply_1').html('');
+    jQuery('#apply_2').html('');
+
+    var type_apply = '';//Hình thức nộp HS
+    if (jQuery('#type_apply_1').attr('checked')) {
+        type_apply += '1';
+        jQuery('#apply_1').html('- Bạn có thể đến trực tiếp địa chỉ trên để nộp hồ sơ');
+
+    }
+    else type_apply += '0';
+    if (jQuery('#type_apply_2').attr('checked')) {
+        type_apply += '|2';
+        jQuery('#apply_2').html('- Hoặc gửi hồ sơ qua email: <a class="email" href="mailto:'+job_contact_email+'" id="mailto">'+job_contact_email+'</a>');
+    }
+    else type_apply += '|0';
+
+    if (tmp>2) {
+        var job_model = 0;
+        if (jQuery('#job_model1').attr('checked')) {
+            job_model = 1;
+        }
+        else if (jQuery('#job_model2').attr('checked')) {
+            job_model = 2;
+        }
+    }
+
+    var ad_description = tinyMCE.get('ad_description').getContent();
+    document.getElementById('ad_description').value=ad_description;//fix lỗi thông báo "bạn cần nhập nội dung"
+
+    if (cate_selected_id==69 || cate_selected_id==264) {
+        var job_ask = tinyMCE.get('job_ask').getContent();
+        document.getElementById('job_ask').value=job_ask;
+    }
+
+    //Nếu check mức lương
+    var sl = 0;
+    if(!jQuery('#job_salary').attr('checked')) {
+    	sl = jQuery('#job_salary_txt').val()+ " "+jQuery("#job_salary_unit option:selected").text()+arr_job_salary_type[parseInt(jQuery('#job_salary_sl').val())];
+    }
+
+    jQuery('#ad_title_hd').val(ad_title);
+    jQuery('#birthday_hd').val(birthday);
+    jQuery('#ad_description_hd').val(ad_description);
+    jQuery('#job_ask_hd').val(job_ask);
+    jQuery('#job_model_hd').val(job_model);
+
+    if (tmp==1 || tmp==2) {
+        jQuery('#job_salary_hd').val(sl);
+        jQuery('#job_date_expire_hd').val(job_date_expire);
+        jQuery('#fullname_hd').val(fullname);
+        jQuery('#gender_hd').val(gender);
+        jQuery('#married_hd').val(married);
+    }
+
+    jQuery('#ad_city_id_hd').val(ad_city_id);
+    jQuery('#job_contact_fullname_hd').val(job_contact_fullname);
+    jQuery('#job_contact_address_hd').val(job_contact_address);
+    jQuery('#user_mobile_hd').val(user_mobile);
+    jQuery('#job_contact_email_hd').val(job_contact_email);
+    jQuery('#city_contact_hd').val(jQuery("#cbo_district").val());//Quê quán
+    jQuery('#type_apply_hd').val(type_apply);
+
+    if (ad_title == "" || ad_title == null) {
+        alert( "Bạn chưa nhập tiêu đề!" );
+        jQuery('#ad_title').focus();
+        return (false);
+    }
+    if (ad_title.length < 5) {
+        alert( "Tiêu đề phải lớn hơn 5 ký tự!" );
+        jQuery('#ad_title').focus();
+        return (false);
+    }
+
+    if (tmp==1 && (fullname == "" || fullname == null)) {
+        alert( "Bạn chưa nhập họ tên!" );
+        jQuery('#fullname').focus();
+        return (false);
+    }
+
+    if (tmp==1 && (birthday == "" || birthday == null)) {
+        alert( "Bạn chưa nhập ngày sinh!" );
+        jQuery('#birthday').focus();
+        return (false);
+    }
+
+    if (ad_description == "" || ad_description == null) {
+        var str = "Bạn chưa nhập Trình độ / Kinh nghiệm làm việc!";
+        if (tmp == 3 || tmp == 4) {
+           str = "Bạn chưa nhập giới thiệu mô tả công việc!";
+        }
+        else if(tmp == 2)
+        {
+            str = "Bạn chưa nhập mô tả công việc!";
+        }
+
+        alert(str);
+        return (false);
+    }
+    if ((tmp==1 || tmp==2) && (job_ask == "" || job_ask == null)) {
+        var str = "Bạn chưa nhập yêu cầu quyền lợi!";
+        if (tmp==1) {
+            str = "Bạn chưa nhập công việc mong muốn!";
+        }
+
+        alert(str);
+        return (false);
+    }
+
+    if((tmp==1 || tmp==2) && !jQuery('#job_salary').attr('checked') && (job_salary_txt == '' || job_salary_txt == '0')) {
+        alert( "Hãy nhập mức lương!" );
+        jQuery('#job_salary_txt').focus();
+        return (false);
+    }
+
+    if (job_contact_fullname == "" || job_contact_fullname == null) {
+        alert( "Bạn chưa nhập họ tên liên hệ!" );
+        jQuery('#job_contact_fullname').focus();
+        return (false);
+    }
+
+    if (job_contact_address == "" || job_contact_address == null) {
+        alert( "Bạn chưa nhập địa chỉ liên hệ!" );
+        jQuery('#job_contact_address').focus();
+        return (false);
+    }
+
+	if (job_contact_email != "" && !shop.is_email(job_contact_email)) {
+        alert("Email liên hệ không đúng định dạng");
+        jQuery("#job_contact_email").focus();
+        return false;
+    }
+
+    if (user_mobile == "" || user_mobile == null) {
+        alert( "Bạn chưa nhập số điện thoại liên hệ!" );
+        jQuery('#user_mobile').focus();
+        return (false);
+    }
+
+    return true;
+}
+
+function print_detail(print_url)
+{
+    window.open(print_url,'','status=0,toolbar=0,scrollbars=1,resizable=1,width=760,height=700,top=' + (screen.height -600)/2 + ',left=' + (screen.width -500)/2 +',location =0,menubar =0');
+}
+
+function show_more_des_company()
+{
+
+}
+
+function typeFiling(o,id){
+    if(jQuery('#'+ o.id).is(':checked')) {
+        jQuery('#exp'+id).addClass('dis_block');
+    } else {
+        jQuery('#exp'+id).removeClass('dis_block');
+    }
+}
+
+function check_file_ext( fileName, fileTypes ){
+    if (!fileName) return false;
+    dots = fileName.split(".");fileType = dots[dots.length-1];
+    for(var i=0;i<fileTypes.length;i++){
+        if(fileType.toLowerCase() == fileTypes[i].toLowerCase()){
+            return true;
+        }
+    }
+    return false;
+}
+
+function showRequestCropAvatar(formData, jqForm, options)
+{
+    //var fileToUploadValue = jQuery('input[@id=photo]').fieldValue();
+    var fileToUploadValue = jQuery('#photo').val();
+    if (fileToUploadValue[0]){
+        var	fileTypes=['jpg','jpeg','gif','png'];
+
+        var fileName = fileToUploadValue.toString();
+        if(check_file_ext(fileName,fileTypes)){
+            jQuery("#photo").hide();
+            jQuery("#show_info_upload").hide();
+            jQuery("#loading").show();
+            return true;
+        }
+
+        else{
+            jQuery("#photo").css("backgroundColor","yellow");
+            jQuery("#loading").hide();
+            jQuery("#EditUser").reset();
+            alert('Chỉ cho phép định dạnh file '+fileTypes);
+            jQuery("#avatar").focus();
+        }
+    }
+    else{
+        alert('Bạn chưa chọn Ảnh để upload!');
+    }
+    return false;
+}
+
+
+function loadfile(filename, filetype){
+
+    if (filetype=="js"){ //if filename is a external JavaScript file
+        var fileref=document.createElement('script');
+        fileref.type = "text/javascript";
+        fileref.src  = filename;
+        document.body.appendChild(fileref);
+
+    }
+    else if (filetype=="css"){ //if filename is an external CSS file
+        var fileref=document.createElement("link")
+        fileref.setAttribute("rel", "stylesheet")
+        fileref.setAttribute("type", "text/css")
+        fileref.setAttribute("href", filename)
+    }
+
+    //if (typeof fileref!="undefined")
+
+}
+
+function showResponseCropAvatar(data, statusText)
+{
+    if(typeof from_user_cp == 'undefined')
+    {
+        loadfile(base_url+"javascript/jquery/jrac/jquery-1.6.2.js", "js");
+        loadfile(base_url+"javascript/jquery/jrac/jquery-ui.js", "js");
+        loadfile(base_url+"javascript/jquery/jrac/jquery.jrac.js", "js");
+    }
+
+    jQuery("#loading").hide();
+
+    if (statusText == 'success')
+    {
+        if(data.error!='success'){//Ko up được ảnh
+            //jQuery("#upload_form").reset();
+            jQuery("#photo").css("backgroundColor","yellow");
+
+            if(data.error=='not_login'){
+                alert('Bạn chưa đăng nhập, hãy đăng nhập lại hệ thống trước khi sử dụng chức năng này!');
+            }
+            else if(data.error=='over_max_size'){
+                alert('Ảnh quá dung lượng cho phép!');
+            }
+            else if(data.error=='ext_invalid'){
+                alert('Ảnh bạn chọn không đúng định dạng!');
+            }
+            else if(data.error=='not_uploaded'){
+                alert('Không Upload được file!');
+            }
+        }
+        else
+        {
+            if(data.crop_avatar)
+            {
+                location.reload();
+            }
+            else
+            {
+                if(typeof from_user_cp == 'undefined')
+                {
+                    setTimeout(function(){// delay 1s để load xong js hieutt04156
+                        jQuery("#crop").show();
+                        jQuery("#crop_img").show();
+                        jQuery(".show_intro_crop_image").show();
+                        jQuery("img#crop_img").attr("src", data.image_max);
+                        jQuery("#imageSource").val(data.image_max);
+
+                        cropImg(data.image_max);
+                        jQuery.noConflict(true);
+                    }, 2000);
+                }
+                else
+                {
+                    jQuery("#crop").show();
+                    jQuery("#crop_img").show();
+                    jQuery(".show_intro_crop_image").show();
+                    jQuery("img#crop_img").attr("src", data.image_max);
+                    jQuery("#imageSource").val(data.image_max);
+
+                    cropImg(data.image_max);
+                }
+            }
+        }
+    }
+    else
+    {
+        alert('Không up được ảnh!');
+        return false;
+    }
+}
+
+function cropImg(src_image)
+{
+    jQuery("#loading").hide();
+    $('.pane img').jrac({
+        'crop_width': 95,
+        'crop_height': 95,
+        'crop_x': 0,
+        'crop_y': 0,
+        //'image_width': 635,
+        'viewport_onload': function() {
+            var $viewport = this;
+            var inputs = $viewport.$container.parent('.pane').find('.coords input:text');
+            var events = ['jrac_crop_x','jrac_crop_y','jrac_crop_width','jrac_crop_height','jrac_image_width','jrac_image_height'];
+            for (var i = 0; i < events.length; i++) {
+                var event_name = events[i];
+                // Register an event with an element.
+                $viewport.observator.register(event_name, inputs.eq(i));
+                // Attach a handler to that event for the element.
+                inputs.eq(i).bind(event_name, function(event, $viewport, value) {
+                    $(this).val(value);
+                })
+
+                // Attach a handler for the built-in jQuery change event, handler
+                // which read user input and apply it to relevent viewport object.
+                .change(event_name, function(event) {
+                    var event_name = event.data;
+                    $viewport.$image.scale_proportion_locked = $viewport.$container.parent('.pane').find('.coords input:checkbox').is(':checked');
+                    $viewport.observator.set_property(event_name,$(this).val());
+                });
+            }
+
+        }
+    })
+}
+
+function upLoadPreview(input)
+{
+    if (input.files && input.files[0])
+    {
+        var fileReader  = new FileReader();
+
+        fileReader.onload = function (e)
+        {
+            jQuery('#crop_img').attr('src', e.target.result);
+            fileReader.readAsDataURL(input.files[0]);
+        }
+    }
+}
+
+function PreviewImage(){
+    var oFReader = new FileReader();
+    oFReader.readAsDataURL(document.getElementById("company_logo").files[0]);
+
+    oFReader.onload = function (oFREvent) {
+        //document.getElementById("uploadPreview").src = oFREvent.target.result;
+        cropImg(oFREvent.target.result);
+    };
+}
+
+function del_avatar_popup(user_id)
+{
+    if(confirm("Bạn có muốn xóa ảnh đại diện của bạn không?"))
+    {
+        jQuery.post(WEB_DIR+"ajax.php@act=user&code=del_avatar_popup", {
+            user_id: user_id
+        },
+        function(msg){
+            if(msg == "no_perm" || msg == "not_login")
+            {
+                log_faile ("Bạn không có quyền thực hiện chức năng này.");
+                return false;
+            }
+            else
+            {
+                  jQuery(".avatar_cicle_detail_p").html("");
+                  jQuery(".del_avar_detail").html("");
+            }
+        });
+    }
+    else
+    {
+        return false;
+    }
+}

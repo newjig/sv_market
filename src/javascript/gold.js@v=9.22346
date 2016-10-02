@@ -1,0 +1,1001 @@
+/**
+ * Date created 22/04/2014
+ * Object chứa các action về nạp Gold
+ */
+
+if (typeof objGold == 'undefined') {
+
+    var objGold = {
+        packageGold : 0, //Gói nạp Gold (CGlobal::$goldPackage)
+        packegeType : 0, //Gói thanh toán nạp Gold (1: bằng online - tận nơi - trụ sở -chuyển khoản, 2: bằng thẻ cào)
+        goldReceive : 0, //Số Gold nhận được
+        priceGold   : 0, //Số tiền phải trả
+        pay_type    : 0, //Hình thức thanh toán (1: online, 2: thu tận nơi, 3: trụ sở RB, 4: chuyển khoản)
+        bank_type   : '', //Ngân hàng chuyển khoản
+        card_type   : 'vinaphone', //Default loại thẻ cào
+
+        //Info person cod
+        city        : '', //Thành phố của khách
+        date        : '', //Ngày có mặt ở nhà
+        time        : '', //Thời gian có mặt ở nhà
+
+        //Form common mua dịch vụ tin đăng
+        selectPackage : function(id,type) {
+            objGold.packegeType = (type == true ? 1 : 2);
+            objGold.packageGold = id;
+            jQuery((type == true ? "#gonline_pay_" : "#gcard_pay_")+id).attr("checked", true);
+
+            objGold.goldReceive = (type == true ? goldPackae[id].receive : goldPackae[id].card_receive);
+            objGold.priceGold   = goldPackae[id].price;
+
+            var pay = (type == true ? 'chuyển khoản / online / thu tiền tận nơi' : 'thẻ cào');
+            var str = 'Tổng số Gold nhận được bằng hình thức thanh toán '+(pay)+' là: <b class="colorGold2">'+ number_format(objGold.goldReceive) +' gold</b>';
+            jQuery('#totalGold').attr('innerHTML', str);
+
+            //Căn chỉnh left menu
+            var left_cp = jQuery('.left_cp').height();
+            var right_cp = jQuery('.right_cp').height();
+
+            if(left_cp > right_cp ) {
+                jQuery('.right_cp').css({'height':left_cp});
+            } else {
+                jQuery('.left_cp').css({'height':right_cp});
+            }
+        },
+
+        //Chọn thanh toán
+        packagePay : function() {
+            if(objGold.packegeType == 0 || objGold.packageGold == 0) {
+                alert('Hãy chọn hình thức nạp Gold');
+            }else {
+                if(objGold.packegeType == 1) { // Nếu Chuyển khoản - online
+                    objGold.choosePay();
+                } else {
+                    objGold.pay_type = 'mcard';
+                    objGold.registerInfo();
+                }
+            }
+        },
+
+        //Chọn hình thức thanh toán
+        selectPayType : function(id) {
+            for(var i = 1; i<=4; i++)
+            {
+                if(i == id)
+                {
+                    jQuery("#paytype_"+i).addClass("rowActice");
+                    jQuery("#radio_"+i).attr("checked", true);
+                    jQuery("#info_"+i).slideDown(300);
+                }
+                else
+                {
+                    jQuery("#paytype_"+i).removeClass('rowActice');
+                    jQuery("#radio_"+i).attr("checked", false);
+                    jQuery("#info_"+i).slideUp(300);
+                }
+            }
+
+            if(id == 3)//Chuyển khoản
+            {
+                jQuery("#bank_hidden").slideDown(300);
+            }
+            else
+            {
+                jQuery("#bank_hidden").slideUp(300);
+            }
+
+            objGold.pay_type = id;
+        },
+
+        chooseBank : function(id){ //Chọn ngân hàng chuyển khoản
+            var tem = objService.bankInfo(id);
+            jQuery('.listBank').slideUp(500);
+            jQuery('.detailBank').html(tem);
+            jQuery('.detailBank').slideDown(500);
+
+            objGold.bank_type = id;
+        },
+
+        chooseTelco:function(obj, type) {
+            document.getElementById('g_'+type).checked = true;
+        },
+
+        //Các hình thức thanh toán
+        choosePay : function () {
+            var tmp_upitem_type = cart_join
+            ('<div class="service" style="width: 700px;">')
+                ('<form id="typeReGold" name="typeReGold" enctype="multipart/form-data" method="post" action="">')
+                    ('<div class="classic-popup">')
+                        ('<div class="body-popup">')
+                            ('<div class="head-popup">')
+                                ('<div class="title">Chọn hình thức thanh toán</div>')
+                                ('<div class="close-popup" title="Đóng" onclick="pay_cancel();"></div>')
+                                ('<div class="clear"></div>')
+                            ('</div>')
+                            ('<div class="main-payment">')
+                                ('<ul class="listPayment">')
+                                    ('<li id="paytype_1" class="lPayment payOnline '+(objGold.pay_type == 1 ? 'rowActice' : '')+'" onclick="objGold.selectPayType(1)" onmouseover="objService.overPaymentType(1)" onmouseout="objService.outPaymentType(1)">')
+                                        ('<div class="rowPayment">')
+                                            ('<div class="radioBox">')
+                                                ('<input type="radio" name="radio_pay" id="radio_1" value="visa" '+(objGold.pay_type == 1 ? 'checked' : '')+'>')
+                                            ('</div>')
+                                            ('<div class="contentBox">')
+                                                ('<div class="payTitBox">Thanh toán online dùng Visa, Master Card, thẻ ATM, tài khoản có Internet Banking</div>')
+                                                ('<div class="payTextBox">Thanh toán nhanh gọn và có thể mua hàng hoặc sử dụng dịch vụ ngay sau khi thanh toán.</div>')
+                                                ('<div class="creditBox">')
+                                                    ('<span class="creditIcon BankBG _visa"></span>')
+                                                    ('<span class="creditIcon BankBG _master"></span>')
+                                                    ('<span class="creditIcon BankBG _vietcombank"></span>')
+                                                    ('<span class="creditIcon BankBG _dongabank"></span>')
+                                                    ('<span class="creditIcon BankBG _techcombank"></span>')
+                                                    ('<span class="creditIcon BankBG _vietinbank"></span>')
+                                                    ('<span class="viewMoreBanks" onclick="objService.viewMoreOnlineBank();">[Thêm...]</span>')
+                                                    ('<div class="clear"></div>')
+                                                    ('<div class="otherBanks disNone">')
+                                                        ('<span class="creditIcon BankBG _hdbank"></span>')
+                                                        ('<span class="creditIcon BankBG _vib"></span>')
+                                                        ('<span class="creditIcon BankBG _tienphongbank"></span>')
+                                                    ('</div>')
+                                                    ('<div class="clear"></div>')
+                                                ('</div>')
+                                                ('<ul id="info_1" class="listPaymentGuide" style="display: none">')
+                                                    ('<li class="lGuide">Không mất phí thanh toán</li>')
+                                                    ('<li class="lGuide">Thẻ của Quý khách phải được kích hoạt chức năng thanh toán trực tuyến hoặc đã đăng ký Internet Banking</li>')
+                                                    ('<li class="lGuide">Thanh toán nhanh gọn và có thể sử dụng dịch vụ ngay sau khi thanh toán.</li>')
+                                                ('</ul>')
+                                            ('</div>')
+                                            ('<div class="clear"></div>')
+                                        ('</div>')
+                                    ('</li>')
+                                    ('<li id="paytype_2" class="lPayment payCod '+(objGold.pay_type == 2 ? 'rowActice' : '')+'" onclick="objGold.selectPayType(2)" onmouseover="objService.overPaymentType(2)" onmouseout="objService.outPaymentType(2)">')
+                                        ('<div class="rowPayment">')
+                                            ('<div class="radioBox">')
+                                                ('<input type="radio" name="radio_pay" id="radio_2" value="gold" '+(objGold.pay_type == 2 ? 'checked' : '')+'>')
+                                            ('</div>')
+                                            ('<div class="contentBox">')
+                                                ('<div class="payTitBox">Nạp Gold thu tiền tận nơi <font color="red">(1 Gold ~ 1 VNĐ)</font></div>')
+                                                ('<div class="payTextBox">Trong thời gian từ 2 - 7 ngày làm việc, nhân viên Rồng Bay sẽ đến tận nơi thu tiền nạp Gold.</div>')
+                                                ('<ul id="info_2" class="listPaymentGuide" style="display: none;">')
+                                                    ('<li class="lGuide">Quý khách có thể bị mất phí khi chọn hình thức này.</li>')
+                                                    ('<li class="lGuide">Nhân viên giao phiếu của RồngBay sẽ liên hệ với Quý khách trước khi giao</li>')
+                                                    ('<li class="lGuide">Quý khách chỉ được sử dụng dịch vụ sau khi đã thanh toán tiền cho nhân viên thu tiền.</li>')
+                                                ('</ul>')
+                                            ('</div>')
+                                            ('<div class="clear"></div>')
+                                        ('</div>')
+                                    ('</li>')
+                                    ('<li id="paytype_3" class="lPayment payRbhome '+(objGold.pay_type == 3 ? 'rowActice' : '')+'" onclick="objGold.selectPayType(3)" onmouseover="objService.overPaymentType(3)" onmouseout="objService.outPaymentType(3)">')
+                                        ('<div class="rowPayment">')
+                                            ('<div class="radioBox">')
+                                                ('<input type="radio" name="radio_pay" id="radio_3" value="gold" '+(objGold.pay_type == 3 ? 'checked' : '')+'>')
+                                            ('</div>')
+                                            ('<div class="contentBox">')
+                                                ('<div class="payTitBox">Nạp Gold tại trụ sở Rồng Bay <font color="red">(1 Gold ~ 1 VNĐ)</font></div>')
+                                                ('<div class="payTextBox">Quý khách đến trực tiếp tại trụ sở RồngBay (Phòng Kế Toán - Công Ty CP VCCorp - Tầng 21 Tòa nhà Center Building - Hapulico Complex, số 1 Nguyễn Huy Tưởng, Quận Thanh Xuân, TP Hà Nội) để nộp tiền mặt.</div>')
+                                                ('<ul id="info_3" class="listPaymentGuide" style="display: none;">')
+                                                    ('<li class="lGuide">Hình thức này quý khách phải đến trụ sở RồngBay để nộp tiền.</li>')
+                                                    ('<li class="lGuide">Gold sẽ được nạp ngay sau khi quý khách hoàn thành thanh toán.</li>')
+                                                ('</ul>')
+                                            ('</div>')
+                                            ('<div class="clear"></div>')
+                                        ('</div>')
+                                    ('</li>')
+                                    ('<li id="paytype_4" class="lPayment payAtm '+(objGold.pay_type == 4 ? 'rowActice' : '')+'" onclick="objGold.selectPayType(4)" onmouseover="objService.overPaymentType(4)" onmouseout="objService.outPaymentType(4)">')
+                                        ('<div class="rowPayment">')
+                                            ('<div class="radioBox">')
+                                                ('<input type="radio" name="radio_pay" id="radio_4" value="atm" '+(objGold.pay_type == 4 ? 'checked' : '')+'>')
+                                            ('</div>')
+                                            ('<div class="contentBox">')
+                                                ('<div class="payTitBox">Chuyển khoản <span class="notiText">(Quý khách tự thanh toán chi phí chuyển khoản)</span></div>')
+                                                ('<div class="payTextBox">Sau khi chuyển khoản, quý khách vui lòng thông báo cho Rồng bay được biết qua địa chỉ email: lienhe@rongbay.com hoặc gọi điện cho số điện thoại 04 73095555. Máy lẻ: 497 / 496 / 495</div>')
+                                                ('<div id="info_4" class="bankATM" style="display: none;">')
+                                                    ('<div class="slBankTit">Chọn ngân hàng của RồngBay.com mà Quý khách sẽ chuyển tiền vào:</div>')
+                                                    ('<div class="detailBank"></div>')
+                                                    ('<div class="listBank">')
+                                                        ('<a onclick="objGold.chooseBank(\'vc_bank\')"><span class="BankBG _vietcombank"></span></a>')
+                                                        ('<a onclick="objGold.chooseBank(\'donga_bank\')"><span class="BankBG _dongabank"></span></a>')
+                                                        ('<a onclick="objGold.chooseBank(\'techcom_bank\')"><span class="BankBG _techcombank"></span></a>')
+                                                        ('<a onclick="objGold.chooseBank(\'agribank\')"><span class="BankBG _agribank"></span></a>')
+                                                        ('<a onclick="objGold.chooseBank(\'bidv_bank\')"><span class="BankBG _bidvbank"></span></a>')
+                                                        ('<a onclick="objGold.chooseBank(\'vietinbank\')"><span class="BankBG _vietinbank"></span></a>')
+                                                        /*('<a onclick="objGold.chooseBank(\'mb_bank\')"><span class="BankBG _mbbank"></span></a>')*/
+                                                        ('<a onclick="objGold.chooseBank(\'acb_bank\')"><span class="BankBG _acbbank"></span></a>')
+                                                        ('<a onclick="objGold.chooseBank(\'vib_bank\')"><span class="BankBG _vib"></span></a>')
+                                                        ('<div class="clear"></div>')
+                                                    ('</div>')
+                                                    ('<ul class="listPaymentGuide">')
+                                                        ('<li class="lGuide">Khi chuyển khoản qua Internet Banking hoặc Quầy giao dịch, Quý khách vui lòng tự chịu phí chuyển khoản.</li>')
+                                                        ('<li class="lGuide">Dịch vụ được kích hoạt chỉ khi tiền đã về tài khoản của RồngBay</li>')
+                                                    ('</ul>')
+                                                ('</div>')
+                                            ('</div>')
+                                            ('<div class="clear"></div>')
+                                        ('</div>')
+                                    ('</li>')
+                                ('</ul>')
+                            ('</div>')
+                            ('<div class="bottom-popup">')
+                                ('<div class="buttonBox buttonNext" onclick="objGold.processChoose();" title="Tiếp tục">Tiếp tục&nbsp;&nbsp;<span>»</span></div>')
+                                ('<div class="buttonBox buttonBack" onclick="pay_cancel();" title="Quay lại"><span>«</span>&nbsp;&nbsp;Quay lại</div>')
+                                ('<div class="clear"></div>')
+                            ('</div>')
+                        ('</div>')
+                    ('</div>')
+                ('</form>')
+            ('</div>')();
+
+            pay_popup(tmp_upitem_type);
+        },
+
+        //Form xử lý khi click button tiếp tục tại màn hình chọn hình thức thanh toán
+        processChoose:function() {
+
+            if (!jQuery('.lPayment').hasClass('rowActice')) {
+                alert('Quý khách chưa chọn hình thức thanh toán');
+                return;
+            }
+
+            if (objGold.pay_type == 4 && objGold.bank_type == '') {
+                alert('Quý khách chưa chọn ngân hàng để chuyển tiền vào');
+                return;
+            }
+
+            if(objGold.pay_type == 2) //Nạp Gold tận nơi
+                objGold.registerCod();
+            else
+                objGold.registerInfo();
+        },
+
+        //Nhập thông tin cá nhân
+        registerInfo : function() {
+            jQuery.unblockUI();
+
+            var onc = '';
+            if(objGold.packegeType == 1) //Nếu gói TT là online - trụ sở RB - chuyển khoản
+                onc = 'objGold.choosePay();';
+            else //TT = Thẻ cào
+                onc = 'pay_cancel();';
+
+            var registerInfo = cart_join
+                ('<div class="service" style="width: 345px;">')
+                    ('<form id="infoUser" name="infoUser" enctype="multipart/form-data" method="post" action="">')
+                        ('<div class="classic-popup">')
+                            ('<div class="body-popup">')
+                                ('<div class="head-popup">')
+                                    ('<div class="title">Nhập thông tin cá nhân</div>')
+                                    ('<div class="close-popup" title="Đóng" onclick="pay_cancel();"></div>')
+                                    ('<div class="clear"></div>')
+                                ('</div>')
+                                ('<div class="main-popup">')
+                                    ('<div class="boxInfoUser">')
+                                        ('<div class="rowInput">')
+                                            ('<label class="fname">Họ và tên: </label>')
+                                            ('<input type="text" name="obj_gold_name" id="obj_gold_name" class="fname" value="'+(user_info.fullname)+'">')
+                                            ('<div class="clear"></div>')
+                                            ('<div class="noticeInput">Vui lòng cho chúng tôi biết họ tên của Quý khách</div>')
+                                        ('</div>')
+                                        ('<div class="rowInput">')
+                                            ('<label class="email">Email:</label>')
+                                            ('<input type="text" name="obj_gold_email" id="obj_gold_email" class="email" value="'+(user_info.email)+'">')
+                                            ('<div class="clear"></div>')
+                                            ('<div class="noticeInput">Vui lòng nhập chính xác địa chỉ email</div>')
+                                        ('</div>')
+                                        ('<div class="rowInput">')
+                                            ('<label class="mobile">Điện thoại di động</label>')
+                                            ('<input type="text" name="obj_gold_mobile" id="obj_gold_mobile" class="mobile" value="'+(user_info.mobile)+'">')
+                                            ('<div class="clear"></div>')
+                                            ('<div class="noticeInput">Vui lòng nhập đúng số điện thoại di động</div>')
+                                        ('</div>')
+                                    ('</div>')
+                                ('</div>')
+                                ('<div class="bottom-popup">')
+                                    ('<div class="buttonBox buttonNext" onclick="objGold.check_register();" title="Tiếp tục">Tiếp tục&nbsp;&nbsp;<span>»</span></div>')
+                                    ('<div class="buttonBox buttonBack" onclick="'+(onc)+'" title="Quay lại"><span>«</span>&nbsp;&nbsp;Quay lại</div>')
+                                    ('<div class="clear"></div>')
+                                ('</div>')
+                            ('</div>')
+                        ('</div>')
+                    ('</form>')
+                ('</div>')();
+            pay_popup(registerInfo);
+        },
+
+        //Nhập thông tin cá nhân
+        registerCod : function(id) {
+            jQuery.unblockUI();
+
+            var registerCod = cart_join
+                ('<div class="service" style="width: 530px;">')
+                    ('<form id="infoUser" name="infoUser" enctype="multipart/form-data" method="post" action="">')
+                        ('<div class="classic-popup">')
+                            ('<div class="body-popup">')
+                                ('<div class="head-popup">')
+                                    ('<div class="title">Thanh toán Nạp gold</div>')
+                                    ('<div class="close-popup" title="Đóng" onclick="pay_cancel();"></div>')
+                                    ('<div class="clear"></div>')
+                                ('</div>')
+
+                                ('<div class="main-popup pdb_0">')
+                                    ('<div class="boxUseful fs12" style="margin: 0 0 20px;">')
+                                        ('<p>Chỉ áp dụng cho 12 quận nội thành Hà Nội <br> và đơn hàng có giá trị từ <b class="colorGold1">200.000đ</b> trở lên</p>')
+                                    ('</div>')
+
+                                    ('<div class="boxAcct" style="margin-top: 0px">')
+                                        ('<span class="boxAcct_left">Thông tin tài khoản</span>')
+                                        ('<div class="clear"></div>')
+                                        ('<ul class="infoItem">')
+                                            ('<li>')
+                                                ('<div class="labelInfo" style="width: 55px;">Tài khoản</div>')
+                                                ('<div class="contInfo">: <a target="_blank" href="member-'+(user_info.id)+'.html">'+(user_info.email)+'</a></div>')
+                                                ('<div class="contInfo" style="color: #F4597A;margin-left: 5px;"> [ID: '+(user_info.id)+']</div>')
+                                                ('<div class="clear"></div>')
+                                            ('</li>')
+                                        ('</ul>')
+                                    ('</div>')
+
+                                    ('<div class="boxAcct bd_none">')
+                                        ('<div class="boxInfoUser">')
+                                            ('<div class="rowInput2">')
+                                                ('<label class="fname">Họ và tên: </label>')
+                                                ('<input type="text" name="obj_gold_name" id="obj_gold_name" class="fname cl1" value="'+(user_info.fullname)+'">')
+                                                ('<div class="clear"></div>')
+                                                ('<div class="noticeInput">Vui lòng cho chúng tôi biết họ tên của Quý khách</div>')
+                                            ('</div>')
+                                            ('<div class="rowInput2">')
+                                                ('<label class="mobile">Điện thoại di động:</label>')
+                                                ('<input type="text" name="obj_gold_mobile" id="obj_gold_mobile" class="mobile cl1" value="'+(user_info.mobile)+'">')
+                                                ('<div class="clear"></div>')
+                                                ('<div class="noticeInput">Vui lòng nhập đúng số điện thoại di động</div>')
+                                            ('</div>')
+                                            ('<div class="rowInput2">')
+                                                ('<label class="fname">Địa chỉ:</label>')
+                                                ('<textarea name="obj_gold_address" id="obj_gold_address" class="address cl1">'+(user_info.address)+'</textarea>')
+                                                ('<div class="clear"></div>')
+                                                ('<div class="noticeInput">Vui lòng nhập đúng địa chỉ của Quý khách để nhân viên RồngBay có thể tới thu tiền.</div>')
+                                            ('</div>')
+                                            /*('<div class="rowInput2">')
+                                                ('<label class="fname">Thành phố:</label>')
+                                                ('<select name="thanh_pho" id="thanh_pho">')
+                                                    ('<option value="1" '+(objGold.city==1? 'selected':'')+' id="tp1">Hà Nội</option>')
+                                                    ('<option value="2" '+(objGold.city==2? 'selected':'')+' id="tp2">Hồ Chí Minh</option>')
+                                                ('</select>')
+                                                ('<div class="clear"></div>')
+                                                ('<div class="noticeInput">Vui lòng cho chúng tôi biết thành phố Quý khách đang sống.</div>')
+                                            ('</div>')*/
+                                            ('<div class="rowInput2">')
+                                                ('<div class="fl w50">')
+                                                    ('<label class="fname">Thứ:</label>')
+                                                    ('<select name="ngay" id="ngay">')
+                                                        ('<option value="2" '+(objGold.date==2? 'selected':'')+' id="t2">Thứ Hai</option>')
+                                                        ('<option value="3" '+(objGold.date==3? 'selected':'')+' id="t3">Thứ Ba</option>')
+                                                        ('<option value="4" '+(objGold.date==4? 'selected':'')+' id="t4">Thứ Tư</option>')
+                                                        ('<option value="5" '+(objGold.date==5? 'selected':'')+' id="t5">Thứ Năm</option>')
+                                                        ('<option value="6" '+(objGold.date==6? 'selected':'')+' id="t6">Thứ Sáu</option>')
+                                                    ('</select>')
+                                                ('</div>')
+                                                ('<div class="fl w50">')
+                                                    ('<label class="fname">Thời gian:</label>')
+                                                    ('<select name="thoi_gian" id="thoi_gian">')
+                                                        ('<option value="1" '+(objGold.time==1? 'selected':'')+' id="b1">Sáng</option>')
+                                                        ('<option value="2" '+(objGold.time==2? 'selected':'')+' id="b2">Chiều</option>')
+                                                        ('<option value="3" '+(objGold.time==3? 'selected':'')+' id="b3">Tối</option>')
+                                                    ('</select>')
+                                                ('</div>')
+                                                ('<div class="clear"></div>')
+                                                ('<div class="noticeInput">Vui lòng cho chúng tôi biết địa chỉ chính xác và thời gian Quý Khách có thể ở nhà.</div>')
+                                            ('</div>')
+
+                                        ('</div>')
+                                    ('</div>')
+
+                                    ('<div class="boxAcct boxAcct_font bdb_none">')
+                                        ('Tổng giá trị thanh toán: <b class="font_#f4597a">' + number_format(objGold.priceGold) + ' VNĐ</b>')
+                                    ('</div>')
+                                ('</div>')
+
+                                ('<div id="bottom-popup" class="bottom-popup">')
+                                    ('<div class="buttonBox buttonNext" onclick="objGold.check_register();" title="Tiếp tục">Thanh toán&nbsp;&nbsp;<span>»</span></div>')
+                                    ('<div class="buttonBox buttonBack" onclick="objGold.choosePay();" title="Quay lại"><span>«</span>&nbsp;&nbsp;Quay lại</div>')
+                                    ('<div class="clear"></div>')
+                                ('</div>')
+                            ('</div>')
+                        ('</div>')
+                    ('</form>')
+                ('</div>')();
+            pay_popup(registerCod);
+        },
+
+        //Xử lý view thông tin cá nhân
+        check_register:function() {
+            var frm = document.infoUser, fname = '',tel = '',email = '', gAddress = '', gCity = '', gDate = '', gTime = '';
+
+            if (frm.obj_gold_name) {
+                fname = frm.obj_gold_name.value.trim();
+                if (fname == '') {
+                    alert('Bạn vui lòng nhập họ tên');
+                    return;
+                }
+                else if (fname.length < 3 || fname.length > 30) {
+                    alert('Họ tên tối thiểu là 3 kí tự tối đa 30 ký tự');
+                    return;
+                }
+            }
+
+            if (frm.obj_gold_email) {
+                email = frm.obj_gold_email.value.trim();
+                if (email == '') {
+                    alert('Chưa nhập địa chỉ email');
+                    return;
+                }
+                else if (!is_email(email)) {
+                    alert('Địa chỉ email không hợp lệ');
+                    return;
+                }
+            }
+
+            if (frm.obj_gold_mobile) {
+                tel = frm.obj_gold_mobile.value.trim();
+                if (tel == '') {
+                    alert('Chưa nhập Số điện thoại');
+                    return;
+                }
+                else if (isNaN(tel)) {
+                    alert('Điện thoại phải là số viết liền\nKhông chứa ký tự đặc biệt');
+                    return;
+                } else if (tel.length >= 15 || tel.length <= 8) {
+                    alert('Điện thoại bạn nhập không đúng\nĐộ dài phải >8 và <15 ký tự');
+                    return;
+                }
+            }
+
+            if(objGold.pay_type == 2)//Thanh toán thu tiền tận nơi
+            {
+                if (frm.obj_gold_address) {
+                    gAddress = frm.obj_gold_address.value.trim();
+                    if (gAddress == '') {
+                        alert('Chưa nhập địa chỉ');
+                        jQuery("#obj_gold_address").focus();
+                        return;
+                    }
+                }
+
+                gCity = jQuery("#thanh_pho").val();
+                gDate = jQuery("#ngay").val();
+                gTime = jQuery("#thoi_gian").val();
+            }
+
+            user_info.fullname  = fname ? fname : user_info.fullname;
+            user_info.email     = email ? email : user_info.email;
+            user_info.mobile    = tel ? tel : user_info.mobile;
+            user_info.address   = gAddress ? gAddress : user_info.address;
+
+            objGold.city = gCity;
+            objGold.date = gDate;
+            objGold.time = gTime;
+
+            if(objGold.pay_type == 'mcard') {
+                objGold.buyGoldCard();
+            }
+            else {
+                objGold.buyGoldConfirm();
+            }
+            return false;
+        },
+
+        //Màn hình confirm các hình thức thanh toán
+        buyGoldConfirm : function () {
+            jQuery.unblockUI();
+
+            var boxInfoTypePay = '', backBt = '', inf = '';
+            if(objGold.pay_type == 1) { //nạp gold bằng online
+                boxInfoTypePay = '<div class="boxAcct bd_none">\
+                                    <span class="boxAcct_left_t">Hình thức thanh toán : <a href="javascript:void(0);" style="cursor: inherit"> Thanh toán Online</a></span>\
+                                    <div class="clear"></div>\
+                                    <div class="boxImg onlineBg"></div>\
+                                    <div class="boxIntro">\
+                                        Chấp nhận thanh toán bằng <b>thẻ Visa/ Master</b> và <b>gần 20 thẻ ATM</b> các loại: Vietcombank, VIB, ViettinBank, HDBank, MB, TechcomBank, TienphongBank, EximBank, SacomBank, Maritime Bank, Viet A Bank, VPBank, GPBank, PGBank, Agri Bank, Sea Bank, Ocean Bank...\
+                                    </div>\
+                                </div>';
+            }
+            else if(objGold.pay_type == 2) { //thanh toán bằng thu tiền tận nơi
+                boxInfoTypePay = '<div class="boxAcct bd_none">\
+                                    <span class="boxAcct_left_t">Hình thức thanh toán : <a href="javascript:void(0);" style="cursor: inherit"> Thu tiền tận nơi</a></span>\
+                                    <div class="clear"></div>\
+                                    <div class="boxImg codBg"></div>\
+                                    <div class="boxIntro">\
+                                        Nhân viên RồngBay sẽ liên hệ trực tiếp với bạn và đến thu tiền tại địa chỉ bạn đã đăng ký với RồngBay<br><font color="red">Chú ý:</font> Chỉ áp dụng với khách hàng ở các quận nội thành Hà Nội và Tp.Hồ Chí Minh\
+                                    </div>\
+                                </div>';
+
+                /*inf =   '<li>\
+                            <div class="labelInfo">Thời gian thu tiền</div>\
+                            <div class="contInfo contInfo_sub">: '+(objGold.time == 1 ? 'Sáng' : objGold.time == 2 ? 'Chiều' : 'Tối')+' Thứ '+(objGold.date)+'</div>\
+                            <div class="clear"></div>\
+                        </li>\
+                        <li>\
+                            <div class="labelInfo" style="width: 185px;">Địa điểm thu tiền của Quý khách</div>\
+                            <div class="contInfo contInfo_sub">: '+(user_info.address) +' '+ ( objGold.city == 1 ? 'TP.Hà Nội' : 'TP.HCM')+'</div>\
+                            <div class="clear"></div>\
+                        </li>';*/
+                inf =   '<li>\
+                            <div class="labelInfo">Thời gian thu tiền</div>\
+                            <div class="contInfo contInfo_sub">: '+(objGold.time == 1 ? 'Sáng' : objGold.time == 2 ? 'Chiều' : 'Tối')+' Thứ '+(objGold.date)+'</div>\
+                            <div class="clear"></div>\
+                        </li>\
+                        <li>\
+                            <div class="labelInfo" style="width: 185px;">Địa điểm thu tiền của Quý khách</div>\
+                            <div class="contInfo contInfo_sub">: '+(user_info.address) +'</div>\
+                            <div class="clear"></div>\
+                        </li>';
+            }
+            else if(objGold.pay_type == 3) { //thanh toán tại trụ sở Rồng Bay
+                boxInfoTypePay = '<div class="boxAcct bd_none">\
+                                    <span class="boxAcct_left_t">Hình thức thanh toán : <a href="javascript:void(0);" style="cursor: inherit"> Thanh toán tại trụ sở Rồng Bay</a></span>\
+                                    <div class="clear"></div>\
+                                    <div class="boxImg rbHomeBg"></div>\
+                                    <div class="boxIntro">\
+                                        Quý khách đến trực tiếp tại trụ sở RồngBay (Phòng Kế Toán - Công Ty CP VCCorp - Tầng 21 Tòa nhà Center Building - Hapulico Complex, số 1 Nguyễn Huy Tưởng, Quận Thanh Xuân, TP Hà Nội) để nộp tiền mặt.\
+                                    </div>\
+                                </div>';
+            }
+            else if(objGold.pay_type == 4) { //thanh toán bằng chuyển khoản
+                boxInfoTypePay = '<div class="boxAcct bd_none">\
+                                    <span class="boxAcct_left_t">Hình thức thanh toán :</span> <span class="font_normal"> Chuyển khoản thanh toán qua <font color=\'#1b77b6\'> ATM</font> hoặc <font color=\'#1b77b6\'>nộp tiền tại quầy GD ngân hàng</font> về</span>\
+                                    <div class="clear"></div>\
+                                    '+(objService.bankInfoFinal(objGold.bank_type))+'\
+                                </div>';
+            }
+
+            if(objGold.pay_type == 2) {
+                backBt = 'objGold.registerCod();';
+            }
+            else
+            {
+                backBt = 'objGold.registerInfo();';
+            }
+
+            if(objGold.pay_type == 4) {
+                infoRechar = '<div class="more_info_recharing">Sau khi chuyển khoản, quý khách vui lòng thông báo cho Rồng bay được biết qua địa chỉ email: lienhe@rongbay.com  hoặc gọi điện cho số điện thoại 04 73095555. Máy lẻ: 497 / 496 / 495</div>';
+                lbl_finish = 'Kết thúc';
+            }
+            else
+            {
+                infoRechar = '';
+                lbl_finish = 'Thanh toán&nbsp;&nbsp;<span>»</span>';
+            }
+
+            var pop_online = cart_join
+                ('<div class="service">')
+                    ('<form id="buyGoldConfirm" name="buyGoldConfirm" enctype="multipart/form-data" method="post" action="">')
+                        ('<div class="classic-popup">')
+                            ('<div class="body-popup">')
+                                ('<div class="head-popup">')
+                                ('<div class="title">Thanh toán Online</div>')
+                                ('<div class="close-popup" title="Đóng" onclick="pay_cancel();"></div>')
+                                ('<div class="clear"></div>')
+                            ('</div>')
+                            ('<div class="main-popup">')
+                                ('<div class="boxAcct" style="margin-top: 0px">')
+                                    ('<span class="boxAcct_left">Thông tin khách hàng</span>')
+                                    ('<a href="javascript:void(0);" onclick="'+backBt+'"><span class="boxAcct_right">Sửa thông tin khách hàng</span></a>')
+                                    ('<div class="clear"></div>')
+                                    ('<ul class="infoItem">')
+                                        ('<li>')
+                                            ('<div class="labelInfo">Họ tên</div>')
+                                            ('<div class="contInfo contInfo_sub">: '+(user_info.fullname)+'</div>')
+                                            ('<div class="clear"></div>')
+                                        ('</li>')
+                                        ('<li>')
+                                            ('<div class="labelInfo">Email</div>')
+                                            ('<div class="contInfo contInfo_sub">: '+(user_info.email)+'</div>')
+                                            ('<div class="clear"></div>')
+                                        ('</li>')
+                                        ('<li>')
+                                            ('<div class="labelInfo">Điện thoại di động</div>')
+                                            ('<div class="contInfo contInfo_sub">: '+(user_info.mobile)+'</div>')
+                                            ('<div class="clear"></div>')
+                                        ('</li>')
+                                        (inf)
+                                    ('</ul>')
+                                ('</div>')
+
+                                (boxInfoTypePay)
+
+                                ('<div class="boxAcct boxAcct_font">')
+                                    ('Tổng giá trị thanh toán: <b class="font_#f4597a">' + number_format(objGold.priceGold) + ' VNĐ</b>')
+                                ('</div>'+infoRechar)
+                                ('<div class="boxAcct_bt">')
+                                    ('<input type="checkbox" id="check-regulations" checked><label for="check-regulations">Tôi đã đọc và đồng ý với <a href="Huong-dan-thanh-toan-gold-tren-RB-fp5.html" target="_blank">các điều khoản và quy định</a> của RồngBay.com</label>')
+                                ('</div>')
+
+                            ('</div>')
+                            ('<div id="bottom-popup" class="bottom-popup">')
+                                ('<div id="btBuyGold" class="buttonBox buttonNext" onclick="objGold.finishBuyGold();" title="Tiếp tục">'+lbl_finish+'</div>')
+                                ('<div class="buttonBox buttonBack" onclick="'+(backBt)+'" title="Quay lại"><span>«</span>&nbsp;&nbsp;Quay lại</div>')
+                                ('<div class="clear"></div>')
+                            ('</div>')
+                        ('</div>')
+                    ('</form>')
+                ('</div>')();
+            pay_popup(pop_online);
+        },
+
+        finishBuyGold : function()
+        {
+            if (!shop.get_ele('check-regulations').checked) {
+                alert('Qu_25C3_25BD kh_25C3_25A1ch ch_25C6_25B0a t_25C3_25ADch v_25C3_25A0o m_25E1_25BB_25A5c _25C4_2591_25_0DC23C9D5D');
+                return;
+            }
+            
+            jQuery("#btBuyGold").attr('onclick','');
+            if(objGold.pay_type == 1)//Online Soha Payment
+            {
+                jQuery.ajax({
+                    type: "POST",
+                    url: WEB_DIR+"ajax.php@act=gold&code=buy_gold_osp",
+                    data: {pay_gold: objGold.priceGold, mobile: user_info.mobile, full_name: user_info.fullname},
+                    dataType: 'json',
+                    success: function(data)
+                    {
+                        jQuery("#btBuyGold").click(objGold.finishBuyGold);
+                        if(data.msg == 'not_login')
+                        {
+                            login_error();
+                            return false;
+                        }
+                        else if(data.msg == 'no_perm')
+                        {
+                            log_faile('Bạn không có quyền thực hiện chức năng này',5000);
+                            return false;
+                        }
+                        else if(data.msg == 'not_user')
+                        {
+                            alert("Tài khoản người được nạp Gold (" + data.user_name + ") không tồn tại!");
+                            return false;
+                        }
+                        else if(data.msg != '')//Error
+                        {
+                            alert(data.msg);
+                        }
+                        else//Succes
+                        {
+                            pay_cancel();
+
+                            window.location = data.soha_url;
+
+                            return false;
+                        }
+                    }
+                });
+            }
+            if(objGold.pay_type == 2)//Thu tiền tận nơi
+            {
+                jQuery.ajax({
+                    type: "POST",
+                    url: WEB_DIR+"ajax.php@act=gold&code=buy_gold_home",
+                    data: {pay_gold: objGold.priceGold, full_name: user_info.fullname, mobile: user_info.mobile, dia_chi: user_info.address, /*thanh_pho: objGold.city,*/ ngay: objGold.date, thoi_gian: objGold.time},
+                    dataType: 'json',
+                    success: function(data)
+                    {
+                        jQuery("#btBuyGold").click(objGold.finishBuyGold);
+                        if(data.msg == 'not_login')
+                        {
+                            login_error();
+                            return false;
+                        }
+                        else if(data.msg == 'no_perm')
+                        {
+                            log_faile('Bạn không có quyền thực hiện chức năng này',5000);
+                            return false;
+                        }
+                        else if(data.msg == 'not_user')
+                        {
+                            alert("Tài khoản người được nạp Gold (" + data.user_name + ") không tồn tại!");
+                            return false;
+                        }
+                        else if(data.msg != '')//Error
+                        {
+                            alert(data.msg);
+                        }
+                        else//Succes
+                        {
+                            pay_cancel();
+
+                            alert("Đơn đặt hàng nạp " + number_format(objGold.priceGold) + " Gold cho tài khoản " + user_email + " của bạn đã được lưu lại, hãy chủ động liên hệ với RồngBay hoặc chờ nhân viên RồngBay gọi điện xác nhận đơn hàng và tiến hành thu tiền - Nạp Gold cho quý khách!\n\nCảm ơn bạn đã sử dụng dịch vụ của RồngBay!");
+
+                            return false;
+                        }
+                    }
+                });
+            }
+            else if(objGold.pay_type == 3)//Tại Trụ sở EB
+            {
+                jQuery.ajax({
+                    type: "POST",
+                    url: WEB_DIR+"ajax.php@act=gold&code=order_gold_at_eb",
+                    data: {pay_gold: objGold.priceGold},
+                    dataType: 'json',
+                    success: function(data)
+                    {
+                        jQuery("#btBuyGold").click(objGold.finishBuyGold);
+                        if(data.msg == 'not_login')
+                        {
+                            login_error();
+                            return false;
+                        }
+                        else if(data.msg == 'no_perm')
+                        {
+                            log_faile('Bạn không có quyền thực hiện chức năng này',5000);
+                            return false;
+                        }
+                        else if(data.msg == 'not_user')
+                        {
+                            alert("Tài khoản người được nạp Gold (" + data.user_name + ") không tồn tại!");
+                            return false;
+                        }
+                        else if(data.msg != '')//Error
+                        {
+                            alert(data.msg);
+                        }
+                        else//Succes
+                        {
+                            pay_cancel();
+
+                            alert("Đơn đặt hàng nạp " + number_format(objGold.priceGold) + " Gold cho tài khoản " + user_email + " của bạn đã được lưu lại, hãy tới trụ sở RồngBay để thanh toán đơn hàng này và nạp Gold!\n\nCảm ơn bạn đã sử dụng dịch vụ của RồngBay!");
+
+                            return false;
+                        }
+                    }
+                });
+            }
+            else if(objGold.pay_type == 4)//Chuyển khoản
+            {
+                jQuery.ajax({
+                    type: "POST",
+                    url: WEB_DIR+"ajax.php@act=gold&code=order_gold_ck",
+                    data: {pay_gold: objGold.priceGold, bank_type: objGold.bank_type},
+                    dataType: 'json',
+                    success: function(data)
+                    {
+                        jQuery("#btBuyGold").click(objGold.finishBuyGold);
+                        if(data.msg == 'not_login')
+                        {
+                            login_error();
+                            return false;
+                        }
+                        else if(data.msg == 'no_perm')
+                        {
+                            log_faile('Bạn không có quyền thực hiện chức năng này',5000);
+                            return false;
+                        }
+                        else if(data.msg == 'not_user')
+                        {
+                            alert("Tài khoản người được nạp Gold (" + data.user_name + ") không tồn tại!");
+                            return false;
+                        }
+                        else if(data.msg != '')//Error
+                        {
+                            alert(data.msg);
+                        }
+                        else//Succes
+                        {
+                            pay_cancel();
+
+                            alert("Đơn đặt hàng nạp " + number_format(objGold.priceGold) + " Gold cho tài khoản " + user_email + " của bạn qua hình thức chuyển khoản đã được lưu lại.\n\nHãy gọi điện thông báo cho RồngBay theo số hỗ trợ: 04 73095555 - ext: 495 / 496 / 497 / 498 - Hotline: 0936 194 226, hoặc làm theo hướng dẫn trước để hoàn thành việc nạp Gold!\n\nCảm ơn bạn đã sử dụng dịch vụ của RồngBay!");
+
+                            return false;
+                        }
+                    }
+                });
+            }
+        },
+
+        //Form nhập thông tin thẻ cào
+        buyGoldCard : function() {
+            jQuery.unblockUI();
+
+            var tmpFormCard = cart_join
+                ('<div class="service" style="width: 515px;">')
+                    ('<form id="cardRecharge" name="cardRecharge" enctype="multipart/form-data" method="post" action="">')
+                        ('<div class="classic-popup">')
+                            ('<div class="body-popup">')
+                                ('<div class="head-popup">')
+                                    ('<div class="title">Nạp thẻ</div>')
+                                    ('<div class="close-popup" title="Đóng" onclick="pay_cancel();"></div>')
+                                    ('<div class="clear"></div>')
+                                ('</div>')
+                                ('<div class="main-popup">')
+                                    ('<div class="boxCardRecharge">')
+                                        ('<div class="titPay" style="font-weight: normal;">')
+                                            ('<b style="color:red">Khấu trừ <span style="font-size:14px">13%</span></b> (<b>Ví dụ:</b> Thẻ mệnh giá 100.000 VNĐ ~ 87.000 Gold)')
+                                        ('</div>')
+
+                                        ('<div class="mgt_10" id="complete"></div>')
+
+                                        ('<div class="labelPay labelTPay">Loại thẻ cào</div>')
+                                        ('<div class="choicePay">')
+                                            ('<div class="rowChoice" onclick="objGold.chooseTelco(this, \'vinaphone\');">')
+                                                ('<label for="g_vinaphone" class="lbChoice vinaphone"></label>')
+                                                ('<input type="radio" name="type_pay" id="g_vinaphone" value="vinaphone" ' + (objGold.card_type == 'vinaphone' ? 'checked="true"' : '') + '>')
+                                            ('</div>')
+                                            ('<div class="rowChoice" onclick="objGold.chooseTelco(this, \'mobifone\');">')
+                                                ('<label for="g_mobifone" class="lbChoice mobiphone"></label>')
+                                                ('<input type="radio" name="type_pay" id="g_mobifone" value="mobifone" ' + (objGold.card_type == 'mobifone' ? 'checked="true"' : '') + '>')
+                                            ('</div>')
+                                            ('<div class="rowChoice" onclick="objGold.chooseTelco(this, \'viettel\');">')
+                                                ('<label for="g_viettel" class="lbChoice viettel"></label>')
+                                                ('<input type="radio" name="type_pay" id="g_viettel" value="viettel" ' + (objGold.card_type == 'viettel' ? 'checked="true"' : '') + '>')
+                                            ('</div>')
+                                            ('<div class="rowChoice" onclick="objGold.chooseTelco(this, \'vcoin\');">')
+                                                ('<label for="g_vcoin" class="lbChoice vcoin"></label>')
+                                                ('<input type="radio" name="type_pay" id="g_vcoin" value="vcoin" ' + (objGold.card_type == 'vcoin' ? 'checked="true"' : '') + '>')
+                                            ('</div>')
+                                            ('<div class="rowChoice" onclick="objGold.chooseTelco(this, \'oncash\');">')
+                                                ('<label for="g_oncash" class="lbChoice oncash"></label>')
+                                                ('<input type="radio" name="type_pay" id="g_oncash" value="oncash" ' + (objGold.card_type == 'oncash' ? 'checked="true"' : '') + '>')
+                                            ('</div>')
+                                            ('<div class="clear"></div>')
+                                        ('</div>')
+
+                                        ('<div class="rowIText">')
+                                            ('<div class="labelPay lbText">Số seri</div>')
+                                            ('<input type="text" name="g_seri" id="g_seri">')
+                                        ('</div>')
+
+                                        ('<div class="rowIText">')
+                                            ('<div class="labelPay lbText">Mã số thẻ cào</div>')
+                                            ('<input type="text" name="g_card_number" id="g_card_number">')
+                                            ('<div style="color:#787878;font-size: 11px;padding:10px 0 0 124px;text-align: justify;">Hệ thống chỉ cho phép nhập sai không quá <span style="color:red;font-size:14px"><b>5</b></span> lần.</div>')
+                                        ('</div>')
+                                        ('<div class="cardGuide">')
+                                            ('<p onclick="jQuery(\'#show_card_list\').toggle();" style="cursor: pointer;color: red;">Giá trị nạp Gold tương ứng của các mệnh giá thẻ: <img style="cursor:pointer" src="style/images/arrow_over.gif"></p>')
+                                            ('<div id="show_card_list" style="font-size: 11px;display: none;">')
+                                                ('<div class="fl w50">')
+                                                    ('<p>- Thẻ mệnh giá 10.000 VNĐ ~ 8.700 Gold</p>')
+                                                    ('<p>- Thẻ mệnh giá 20.000 VNĐ ~ 17.400 Gold</p>')
+                                                    ('<p>- Thẻ mệnh giá 30.000 VNĐ ~ 26.100 Gold</p>')
+                                                    ('<p>- Thẻ mệnh giá 50.000 VNĐ ~ 43.500 Gold</p>')
+                                                ('</div>')
+                                                ('<div class="fl w50">')
+                                                    ('<p>- Thẻ mệnh giá 100.000 VNĐ ~ 87.000 Gold</p>')
+                                                    ('<p>- Thẻ mệnh giá 200.000 VNĐ ~ 174.000 Gold</p>')
+                                                    ('<p>- Thẻ mệnh giá 300.000 VNĐ ~ 261.000 Gold</p>')
+                                                    ('<p>- Thẻ mệnh giá 500.000 VNĐ ~ 435.000 Gold</p>')
+                                                ('</div>')
+                                                ('<div class="clear"></div>')
+                                            ('</div>')
+                                        ('</div>')
+                                    ('</div>')
+                                ('</div>')
+                                ('<div class="bottom-popup">')
+                                    ('<div id="btRecharge"><div class="buttonBox buttonNext" onclick="objGold.gold_recharge();" title="Nạp thẻ">Nạp thẻ</div></div>')
+                                    ('<div id="btBack" class="buttonBox buttonBack" onclick="objGold.registerInfo();" title="Quay lại"><span>«</span>&nbsp;&nbsp;Quay lại</div>')
+                                    ('<img id="loading_pay" style="float: right;margin-top: 8px;display: none;" src="images/loading.gif">')
+                                    ('<div class="clear"></div>')
+                                ('</div>')
+                            ('</div>')
+                        ('</div>')
+                    ('</form>')
+                ('</div>')();
+
+            pay_popup(tmpFormCard);
+        },
+
+        //Xử lý thẻ cào nạp Gold
+        gold_recharge : function() {
+            var frm = document.cardRecharge, code = '', seri = '';
+            if (frm.g_card_number) {
+                if (!shop.get_ele('g_vinaphone').checked && !shop.get_ele('g_mobifone').checked && !shop.get_ele('g_viettel').checked && !shop.get_ele('g_vcoin').checked && !shop.get_ele('g_oncash').checked) {
+                    alert('Bạn chưa chọn loại thẻ cào');
+                    return false;
+                }
+                else {
+                    if (jQuery('#g_vinaphone').is(":checked"))      objGold.card_type = 'vinaphone';
+                    else if (jQuery('#g_mobifone').is(":checked"))  objGold.card_type = 'mobifone';
+                    else if (jQuery('#g_viettel').is(":checked"))   objGold.card_type = 'viettel';
+                    else if (jQuery('#g_vcoin').is(":checked"))     objGold.card_type = 'vcoin';
+                    else if (jQuery('#g_oncash').is(":checked"))    objGold.card_type = 'oncash';
+                }
+
+                seri = shop.util_trim(frm.g_seri.value);
+                code = shop.util_trim(frm.g_card_number.value);
+
+                if (seri == '')
+                {
+                    alert('Bạn chưa nhập số seri của thẻ cào');
+                    return false;
+                }
+
+                if (code == '') {
+                    alert('Chưa nhập mã số thẻ cào');
+                    return false;
+                }
+                else if (code.length < 12) {
+                    alert('Mã số thẻ không hợp lệ');
+                    return false;
+                }
+
+                var data = "&mobile=" + user_info.mobile;
+                data += "&card_type=" + objGold.card_type;
+                data += "&card_code=" + code;
+                data += "&card_seri=" + seri;
+
+                var strBtnOn    = ('<div class="buttonBox buttonNext" onclick="objGold.gold_recharge();" title="Nạp thẻ">Nạp thẻ</div>');
+                var strBtnOff   = ('<div class="buttonBox buttonNext" title="Nạp thẻ">Nạp thẻ</div>');
+                jQuery('#btRecharge').attr('innerHTML', strBtnOff);
+                jQuery('#btBack').attr('onclick', '');
+                jQuery('#loading_pay').show();
+                jQuery('#loadingTitleDiv').show();
+                jQuery.ajax({
+                    type: "POST",
+                    url:"ajax.php@act=gold&code=gold_recharge",
+                    data: data,
+                    dataType: 'json',
+                    success: function(data) {
+                        jQuery('#loading_pay').hide();
+                        jQuery('#loadingTitleDiv').hide();
+
+                        /*jQuery('#g_seri').attr("disabled",false).val('');
+                        jQuery('#g_card_number').attr("disabled",false).val('');*/
+                        jQuery('#btBack').click(objGold.registerInfo);
+
+                        if(data.msg == 'not_login')
+                        {
+                            login_error();
+                            return false;
+                        }
+                        else if(data.msg == 'no_perm')
+                        {
+                            log_faile('Bạn không có quyền thực hiện chức năng này',5000);
+                            return false;
+                        }
+                        else if(data.msg == 'error')
+                        {
+                            alert("Thông tin thẻ cào không đúng, mời bạn thử lại!");
+                            jQuery('#btRecharge').attr('innerHTML', strBtnOn);
+                            //window.location.reload();
+                            //return false;
+                        }
+                        else if(data.msg == '')//Đã ok
+                        {
+                            EB_GOLD = data.user_gold;
+                            if (typeof EB_GOLD == 'undefined') {
+                                alert("Thông tin thẻ cào không đúng, mời bạn thử lại!");
+                                jQuery('#btRecharge').attr('innerHTML', strBtnOn);
+                                return;
+                            }
+
+                            jQuery('#account_gold').html('('+number_format(data.user_gold)+' Gold)');//Gold header
+
+                            jQuery('#complete').html('<div align="left">\
+											<div id="pTop5" class="newCustomerInfo mTop5">\
+												<div style="margin-left:30px; font-weight:normal" class="card_type">\
+                                                    Quý khách vừa nạp thành công thẻ '+ objGold.card_type +': <strong>'+number_format(data.card_price) +' VNĐ</strong>.<br/>Tài khoản <b>'+ user_email+'</b> được nạp <b>'+ number_format(data.gold)+'</b> Gold.<br/>Số Gold hiện tại của (<b>'+ user_email+'</b>) là <b>'+ number_format(data.user_gold)+'</b> Gold.<br/>Mã giao dịch: <b><a href="' + WEB_DIR + 'usercp.html@cmd=gold_history&log_id=' + data.log_id + '" target="_blank" style="display:inline;float:none;padding:0;margin:0">CARD_'+ data.card_log_id+'</a></b>\
+												</div>\
+											</div>\
+										</div>');
+                        }
+                        else//Lỗi nạp thẻ
+                        {
+                            if(data.locked)
+                            {
+                                pay_cancel();
+                                alert(data.msg);
+                                window.location = WEB_DIR;
+                            }
+                            else{
+                                alert(data.msg);
+                                jQuery('#btRecharge').attr('innerHTML', strBtnOn);
+                            }
+                        }
+
+                        return false;
+                    }
+                });
+            }
+            return false;
+        }
+
+    }
+
+}

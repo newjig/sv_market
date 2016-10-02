@@ -1,0 +1,465 @@
+.mgt_10{margin-top: 10px !important;}
+.mgb_10{margin-bottom: 10px !important;}
+.pdl_30{padding-left: 30px !important;}
+.pdb_0{padding-bottom: 0 !important;}
+.bd_none{border: none !important;}
+.bdb_none{border-bottom: none !important;}
+.disNone{display: none}
+.disBlock{display: block}
+
+.service{width:800px;margin:0 auto;text-align:left;font-family: arial,helvetica,sans-serif;}
+.service .classic-popup{background-color: transparent;}
+.service .classic-popup .body-popup{padding: 0;color: #333;font-size: 12px;height: auto;border-radius: 3px;overflow: hidden;display: block;/*box-shadow: 0 0 10px 3px #555;*/}
+.service .classic-popup .body-popup .head-popup{background: #1b77b6;height: 42px;line-height: 42px;padding:0 18px;font-size: 13px;color: #fff;text-transform: uppercase;}
+.service .classic-popup .body-popup .head-popup .title{float: left;/*width:730px;overflow: hidden;text-overflow: ellipsis;*/white-space: nowrap;}
+.service .classic-popup .body-popup .head-popup .close-popup{background: url("images/service/close.png") no-repeat right center;float: right;width: 15px;height: 42px;cursor: pointer;white-space: nowrap;}
+.service .classic-popup .body-popup .main-popup{background: #fff;padding: 20px;}
+.service .classic-popup .body-popup .main-payment{background: #fff;padding: 0;}
+.service .classic-popup .body-popup .bottom-popup{background: #f1f1f1;padding: 15px;}
+.service .classic-popup .body-popup .bottom-popup .buttonBox, .btn_popup_new{width: 100px;height: 33px;line-height: 30px;float: right;margin-left: 15px;border-radius: 3px;text-align: center;cursor: pointer;}
+.service .classic-popup .body-popup .bottom-popup .buttonNext, .btn_next_new{background: #1b77b6;color: #fff;}
+.service .classic-popup .body-popup .bottom-popup .buttonBack, .btn_back_new{background: #dddddd;color: #666;}
+.service .classic-popup .body-popup .bottom-popup .buttonBox span, .btn_popup_new span{font-size: 16px;}
+
+ul.infoItem{padding: 0 5px;}
+ul.infoItem li{background: url("images/service/desc.png") no-repeat 0 center;margin: 0;padding: 0 0 0 18px;height: 25px;line-height: 25px;}
+ul.infoItem li .labelInfo{float: left;width: 72px;color: #666;}
+ul.infoItem li .contInfo{float: left;color: #333;white-space: nowrap;*width: 575px;}
+ul.infoItem li a, ul.infoItem li .contInfo_sub, .boxAcct_bt label a{color: #2185c5 !important;}
+ul.infoItem li a:hover, .boxAcct_bt label a:hover{color: #FF8C00 !important;}
+
+ul.infoService{padding: 0 5px;}
+ul.infoService li{background: url("images/service/i.png") no-repeat;margin: 0;padding: 0 0 0 30px;line-height: 22px;}
+ul.infoService li b{color: #333;}
+
+/*===========all bank RB===========*/
+.vc_bank_rb{background: url(images/newCart/bank/vietcom-bank.gif) no-repeat center center;}
+.donga_bank_rb{background: url(images/newCart/bank/donga-bank.gif) no-repeat center center;}
+.mb_bank_rb{background: url(images/newCart/bank/mb.png) no-repeat center center;}
+.vib_bank_rb{background: url(images/newCart/bank/vib-bank.gif) no-repeat center center;}
+.acb_bank_rb{background: url(images/newCart/bank/acb.png) no-repeat center center;}
+.techcom_bank_rb{background: url(images/newCart/bank/techcombank.gif) no-repeat center center;}
+.bidv_bank_rb{background: url(images/newCart/bank/bidv.gif) no-repeat center center;}
+.vietinbank_rb{background: url(images/newCart/bank/vietinbank.gif) no-repeat center center;}
+.agribank_rb{background: url(images/newCart/bank/agribank.gif) no-repeat center center;}
+
+.BankBG{background: url(images/service/bank.png) no-repeat center center;}
+.BankBG._visa{background-position: center 0;}
+.BankBG._master{background-position: center -25px;}
+.BankBG._vietcombank{background-position: center -48px;}
+.BankBG._dongabank{background-position: center -72px;}
+.BankBG._techcombank{background-position: center -96px;}
+.BankBG._agribank{background-position: center -120px;}
+.BankBG._bidvbank{background-position: center -144px;}
+.BankBG._vietinbank{background-position: center -168px;}
+.BankBG._mbbank{background-position: center -192px;}
+.BankBG._acbbank{background-position: center -216px;}
+.BankBG._vib{background-position: center -240px;}
+.BankBG._hdbank{background-position: center -264px;}
+.BankBG._tienphongbank{background-position: center -288px;}
+/*===========end bank RB===========*/
+
+/*===========all card RB===========*/
+.vinaphone{background: url("images/newCart/vinaphone.png") no-repeat center center;}
+.mobiphone{background: url("images/newCart/mobiphone.png") no-repeat center center;}
+.viettel{background: url("images/newCart/viettel.png") no-repeat center center;}
+.vcoin{background: url("images/newCart/vcoin.png") no-repeat center center;}
+.oncash{background: url("images/newCart/oncash.png") no-repeat center center;}
+/*===========end card RB===========*/
+
+ul.listPayment{padding: 0;}
+ul.listPayment li.lPayment{border-top: solid 1px #dfdfdf;padding:10px 0 10px 90px;margin: 0;cursor: pointer;}
+ul.listPayment li.payOnline{background: url(images/newCart/payment_type/online.png) no-repeat 14px 0;}
+ul.listPayment li.payCard{background: url(images/thecao.png) no-repeat 14px 0;}
+ul.listPayment li.payGold{background: url(images/newCart/payment_type/gold.png) no-repeat 14px 0;}
+ul.listPayment li.payAtm{background: url(images/newCart/payment_type/atm.png) no-repeat 14px 0;}
+ul.listPayment li.payCod{background: url(images/newCart/payment_type/cod.png) no-repeat 14px 0;}
+ul.listPayment li.payRbhome{background: url(images/newCart/payment_type/coo.png) no-repeat 14px 0;}
+
+ul.listPayment li.lPayment .rowPayment{padding-right: 35px;margin-right: 3px;}
+ul.listPayment li.lPayment.rowHover .rowPayment{background:url('images/newCart/arrow_select.png') no-repeat right center;}
+ul.listPayment li.lPayment.rowActice .rowPayment{background:url('images/newCart/checked.png') no-repeat right center}
+ul.listPayment li.lPayment .rowPayment .radioBox{float: left}
+ul.listPayment li.lPayment .rowPayment .contentBox{float: left;margin-left: 5px;width: 540px;}
+ul.listPayment li.lPayment .rowPayment .contentBox .payTitBox{font-weight: bold;color: #2c2c2c;line-height: 100%;font-size: 12px;}
+ul.listPayment li.lPayment .rowPayment .contentBox .payTitBox .notiText{font-weight: normal;color: #be0d0d;font-size: 11px;}
+ul.listPayment li.lPayment .rowPayment .contentBox .payTextBox{margin: 5px 0;font-size: 11px;color: #666;text-align: justify;}
+ul.listPayment li.lPayment .rowPayment .contentBox .creditBox{}
+ul.listPayment li.lPayment .rowPayment .contentBox .creditBox .creditIcon{float: left;height: 24px;width: 80px;overflow: hidden;display: block;}
+ul.listPayment li.lPayment .rowPayment .contentBox .creditBox .creditIcon._visa{width: 60px;}
+ul.listPayment li.lPayment .rowPayment .contentBox .creditBox .creditIcon._master{width: 50px;}
+ul.listPayment li.lPayment .rowPayment .contentBox .creditBox .creditIcon._techcombank{width: 70px;}
+ul.listPayment li.lPayment .rowPayment .contentBox .creditBox .creditIcon._vietinbank{width: 110px;}
+ul.listPayment li.lPayment .rowPayment .contentBox .creditBox .viewMoreBanks{float: left;height:25px;line-height: 40px;width: 90px;color: #007ab9;font-size: 12px;text-align: center;font-weight: bold;}
+ul.listPayment li.lPayment .rowPayment .contentBox .creditBox .otherBanks{float: left;margin: 5px 0;}
+ul.listPayment li.lPayment .rowPayment .contentBox .cardBox{padding: 5px 0;}
+ul.listPayment li.lPayment .rowPayment .contentBox .cardBox .rcard{float:left;width: 85px;height: 30px;display: block;}
+ul.listPayment li.lPayment .rowPayment .contentBox .cardBox .rcard.vinaphone{width: 100px;}
+ul.listPayment li.lPayment .rowPayment .contentBox .cardBox .rcard.mobiphone{width: 100px;}
+ul.listPayment li.lPayment .rowPayment .contentBox .cardBox .rcard.viettel{width: 60px;}
+ul.listPayment li.lPayment .rowPayment .contentBox .cardBox .rcard.vcoin{}
+ul.listPayment li.lPayment .rowPayment .contentBox .cardBox .rcard.oncash{}
+ul.listPayment li.lPayment .rowPayment .contentBox ul.listPaymentGuide{margin: 5px 0 0;line-height: 150%;color: #666;font-size: 11px;}
+ul.listPayment li.lPayment .rowPayment .contentBox ul.listPaymentGuide li.lGuide{list-style: disc;margin-left: 15px;text-align: justify;}
+ul.listPayment li.lPayment .rowPayment .contentBox .bankATM{margin: 10px 0 0 10px;}
+ul.listPayment li.lPayment .rowPayment .contentBox .bankATM .slBankTit{font-size: 14px;font-weight: bold;color: blue;}
+ul.listPayment li.lPayment .rowPayment .contentBox .bankATM .detailBank{}
+ul.listPayment li.lPayment .rowPayment .contentBox .bankATM .detailBank .logoBank{float: left;width: 100px;height: 55px;display: block;overflow: hidden;margin: 10px 10px 0 0;text-align: center;}
+ul.listPayment li.lPayment .rowPayment .contentBox .bankATM .detailBank .detailInfo{float: left;width: 350px;}
+ul.listPayment li.lPayment .rowPayment .contentBox .bankATM .detailBank .detailInfo .ntdetail{margin-top: 5px;color: #BE0D0D;}
+ul.listPayment li.lPayment .rowPayment .contentBox .bankATM .detailBank .goBack{float: right;background: url(images/newCart/return.jpg) no-repeat left center;width: 155px;height: 20px;line-height: 20px;padding-left: 25px;margin-top: 10px;font-weight: bold;font-size: 14px;color: #000;}
+ul.listPayment li.lPayment .rowPayment .contentBox .bankATM .detailBank .goBack:hover{text-decoration: underline;}
+ul.listPayment li.lPayment .rowPayment .contentBox .bankATM .listBank{margin: 0 0 10px 0;}
+ul.listPayment li.lPayment .rowPayment .contentBox .bankATM .listBank a{float: left;background: url('images/newCart/bgbank.png') left top no-repeat;width: 100px;height: 24px;padding: 3px 2px;display: block;margin: 10px 2px 0 0;}
+ul.listPayment li.lPayment .rowPayment .contentBox .bankATM .listBank a:hover{background-position: left -30px;}
+ul.listPayment li.lPayment .rowPayment .contentBox .bankATM .listBank a span{height:24px;width:96px;overflow:hidden;display:block;cursor:pointer}
+/*ul.listPayment li.lPayment .rowPayment .contentBox .bankATM .listBank a #vcb{background-position:center 0}
+ul.listPayment li.lPayment .rowPayment .contentBox .bankATM .listBank a #donga{background-position:center -24px}
+ul.listPayment li.lPayment .rowPayment .contentBox .bankATM .listBank a #techcom{background-position:center -48px}
+ul.listPayment li.lPayment .rowPayment .contentBox .bankATM .listBank a #agri{background-position:center -72px}
+ul.listPayment li.lPayment .rowPayment .contentBox .bankATM .listBank a #bidv{background-position:center -96px}
+ul.listPayment li.lPayment .rowPayment .contentBox .bankATM .listBank a #vietin{background-position:center -120px}
+ul.listPayment li.lPayment .rowPayment .contentBox .bankATM .listBank a #mb{background-position:center -144px}
+ul.listPayment li.lPayment .rowPayment .contentBox .bankATM .listBank a #acb{background-position:center -168px}
+ul.listPayment li.lPayment .rowPayment .contentBox .bankATM .listBank a #vib{background-position:center -192px}
+ul.listPayment li.lPayment .rowPayment .contentBox .bankATM .listBank a #hd{background-position:center -216px}*/
+
+table.tbPriceUp{margin-top: 18px;font-family: arial,helvetica,sans-serif;border-collapse: collapse;}
+table.tbPriceUp td{line-height: 20px;padding: 5px;text-align: center;font-size: 13px;color: #333;}
+table.tbPriceUp td.tdHead{font-size: 11px;color: #1b77b6;text-transform: uppercase;}
+table.tbPriceUp td.tdHead .tNotice{color: #aaa;text-transform: none;font-style: italic;}
+table.tbPriceUp td.tdFirst{background: #f7f7f7;}
+table.tbPriceUp td.tdChoice{padding: 8px; cursor: pointer;}
+table.tbPriceUp td.tdChoice:hover{background: #eaeaea;}
+table.tbPriceUp td.tdChoice.active{background: #eaeaea;}
+table.tbPriceUp td.tdChoice input{margin-bottom: 4px;}
+table.tbPriceUp td.tdChoice label{color: #666;font-size: 11px;margin-top: 3px;}
+table.tbPriceUp td.tdChoice label b{color: #333;}
+table#tbPriceUp{margin-top: 7px}
+table#tbPriceUp tr#trHead td{padding: 0px 5px}
+table#tbPriceUp tr.trFirt{height: 52px}
+table.tbPriceUp_sub tr td{font-size: 12px;color: #676767}
+table.tbPriceUp_sub tr td b{color: #4B4B4B}
+table.tbPriceUp_sub tr.trHead td.tdHead{font-size: 12px}
+table.tbPriceUp_sub tr td.tdDate{text-align: left;width: 112px;padding: 5px 0px 5px 22px}
+table.tbPriceUp_sub tr td.tdPrice{padding: 5px 0px 5px 88px;font-size: 13px;text-align: left}
+table.tbPriceUp_sub tr td.tdPrice span.font_strike{float: none; padding-left:8px;color: #B4B4B4;font-size: 13px;text-decoration: line-through}
+
+.boxUseful{margin: 25px 5px;padding:7px;line-height:22px;background: #fdf7e8;border: solid 1px #f0b515;border-radius: 3px;text-align: center;}
+.boxUseful .construct{font-size: 15px;color: #e67e22;}
+.boxUseful .noticeBox{font-size: 11px;color: #555;}
+
+.boxOr{width: 150px;margin: 20px auto; text-align: center;font-size: 15px;}
+.boxOr .bdtOr{border-bottom: solid 1px #e0e0e0;}
+.boxOr .textOr{background: #fff;padding: 0 8px;margin-top:-10px;display: inline-block;}
+
+.boxService{width: 238px;margin-right: 15px;float: left;border: solid 1px #ebebeb;border-radius: 3px;}
+.boxService .boxHead{background: #f0f0f0;height: 40px;line-height: 40px;text-align: center;font-size: 13px;border-bottom: solid 1px #ebebeb;position: relative;}
+.boxService .boxHead .boxHelp{position: absolute;top: 5px;right: 5px;background: url("images/service/help.png") no-repeat;width: 12px;height: 12px;cursor: pointer;}
+.boxService .boxCont{padding: 15px;}
+.boxService .boxCont ul.interests{padding: 0;color: #444;font-size: 11px;}
+.boxService .boxCont ul.interests_height{height: 109px;}
+.boxService .boxCont ul.interests li{background: url("images/service/checked.png") no-repeat 0 5px;margin: 0;padding: 0 0 0 18px;line-height: 22px;}
+.boxService .boxCont .promotion{margin: 25px 0 20px 45px;font-size: 13px;font-weight: bold;color: #f1592a;text-transform: uppercase;position: relative;}
+.boxService .boxCont .promotion .ic_hot{position: absolute; top: -3px;left: -20px;background: url("images/service/hot.png") no-repeat;width: 18px;height: 12px;}
+.boxService .btBuy{width: 100px;height: 30px;line-height: 30px;margin: 0 auto;text-align: center;color: #fff;font-weight: bold;border-radius: 3px;cursor: pointer;}
+.boxService .btBuyTop{background: #f0b515;/*margin-top: 61px*/}
+.boxService .btBuyVip{background: #f1592a;/*margin-top: 17px*/}
+.boxService .btBuyPackage{background: #71afc1;/*margin-top: 39px;*/}
+
+.boxContact{font-size: 11px;font-style: italic;color: #666;margin-top: 20px;}
+.boxContact .totalUp{font-size: 13px;font-style: normal;}
+.boxContact .totalUp span.bonus{font-size: 13px;color: #d94d36}
+.boxContact_sub{margin: 26px 0px 14px 0px}
+.phoneNumber{color: #d94d36;font-size: 11px}
+
+.price_salloff{margin-left: 10px; color: #999; text-decoration: line-through; font-size: 13px;}
+a.view_position_vip{background: url("images/service/location.png") no-repeat 70px 2px; padding: 0 20px; font-size: 11px;}
+a.link_ext{ font-size: 11px; margin: 0 5px;}
+div.r_total_money{text-align: right;margin: 20px auto; padding-bottom: 10px; border-bottom: 1px dotted #CCC;}
+span.total_money_vip{font-size: 13px; font-weight: bold; color: #FF8C00;}
+.boxInfoUser{padding: 0 5px;}
+.boxInfoUser .rowInput{padding: 15px 0;}
+.boxInfoUser .rowInput label{float: left;height: 22px;line-height: 22px;font-size: 12px;color: #1b77b6;text-transform: uppercase;font-weight: bold;}
+.boxInfoUser .rowInput label.fname, .boxInfoUser .rowInput label.email{width: 80px;}
+.boxInfoUser .rowInput label.mobile{width: 150px;}
+.boxInfoUser .rowInput input{float: left;height: 22px;line-height: 22px;border: solid 1px #acacac;padding: 0 3px;}
+.boxInfoUser .rowInput input.cl1{border: 1px solid #EEEEEE;}
+.boxInfoUser .rowInput input.fname, .boxInfoUser .rowInput input.email{width: 195px;}
+.boxInfoUser .rowInput input.mobile{width: 125px;}
+.boxInfoUser .rowInput .noticeInput{font-size: 10px;color: #999;margin-top: 7px;}
+
+.boxInfoUser .rowInput2{padding: 15px 0;}
+.boxInfoUser .rowInput2 label{float: left;height: 22px;line-height: 22px;font-size: 12px;color: #1b77b6;text-transform: uppercase;font-weight: bold;}
+.boxInfoUser .rowInput2 label.fname, .boxInfoUser .rowInput2 label.email{width: 90px;}
+.boxInfoUser .rowInput2 label.mobile{width: 135px;}
+.boxInfoUser .rowInput2 input{float: left;height: 22px;line-height: 22px;border: solid 1px #acacac;padding: 0 3px;}
+.boxInfoUser .rowInput2 input.cl1{border: 1px solid #ebebeb;}
+.boxInfoUser .rowInput2 input.fname, .boxInfoUser .rowInput2 input.email{width: 275px;}
+.boxInfoUser .rowInput2 input.mobile{width: 230px;}
+.boxInfoUser .rowInput2 textarea{float: left;height: 22px;line-height: 22px;border: solid 1px #acacac;padding: 0 3px;}
+.boxInfoUser .rowInput2 textarea.cl1{border: 1px solid #ebebeb;}
+.boxInfoUser .rowInput2 textarea.address{width: 305px; height: 60px;resize: none; }
+.boxInfoUser .rowInput2 select{width: 120px; height: 25px;padding: 3px 3px 3px 0;border: solid 1px #ebebeb;}
+.boxInfoUser .rowInput2 .noticeInput{font-size: 11px;color: #999;margin-top: 7px;}
+
+.boxCardRecharge{}
+.boxCardRecharge .titPay{height: 35px;line-height: 35px;background: #fff9d7;border: solid 1px #008001;color: #008001;font-size: 12px;font-weight: bold;text-align: center;margin-top: 5px;}
+.boxCardRecharge .labelPay{font-size: 13px;font-weight: bold;margin-left: 9px;}
+.boxCardRecharge .labelTPay{padding-top: 20px;}
+.boxCardRecharge .choicePay{padding: 6px 15px 0;}
+.boxCardRecharge .choicePay .rowChoice{float: left;text-align: center;cursor: pointer;}
+.boxCardRecharge .choicePay .rowChoice .lbChoice{width: 85px;height: 30px;display: block;}
+.boxCardRecharge .choicePay .rowChoice .lbChoice.vinaphone{width: 100px;}
+.boxCardRecharge .choicePay .rowChoice .lbChoice.mobiphone{width: 100px;}
+.boxCardRecharge .choicePay .rowChoice .lbChoice.viettel{width: 60px}
+.boxCardRecharge .choicePay .rowChoice .lbChoice.vcoin{}
+.boxCardRecharge .choicePay .rowChoice .lbChoice.oncash{}
+.boxCardRecharge .choicePay .rowChoice input{margin-top: 5px;}
+.boxCardRecharge .rowIText{margin-top: 25px;}
+.boxCardRecharge .rowIText .lbText{float: left;height: 22px;line-height: 22px;width: 115px;}
+.boxCardRecharge .rowIText input{height: 22px;line-height: 22px;width: 205px;padding: 0 3px;border: solid 1px #a9a9a9;}
+.boxCardRecharge .cardGuide{border-top: solid 1px #ebebeb;margin-top: 20px;padding-top: 15px;color: #666;line-height: 25px;}
+.boxCardRecharge .cardGuide .sugColor{color: #1b77b6;}
+
+/******popup_upitem_confirm*****/
+.boxAcct{overflow: hidden;border-bottom: 1px solid #eeeeee;margin: 23px 0px 0px 14px;padding-bottom: 14px;}
+.boxAcct span{float: left;height: 20px;line-height: 23px;font-weight: 700;color: #4A4A4A;}
+.boxAcct .boxAcct_left{background: url("images/service/i.png") no-repeat left center;padding-left: 30px;float:left}
+.boxAcct .boxAcct_right{background: url("images/service/editInfo.png") no-repeat left center;height: 20px;padding-left: 22px;float:right;padding-right: 6px;white-space: nowrap;}
+.boxAcct .boxAcct_right a{color: #676767;}
+.boxAcct ul{margin-top: 14px;margin-left: 28px;}
+.boxAcct ul li .labelInfo{width: 105px;}
+.boxAcct .boxAcct_left_l{background: url("images/service/itemInfo.png") no-repeat left center;padding-left: 30px;white-space: nowrap;}
+.boxAcct .boxAcct_left_t{background: url("images/service/typePay.png") no-repeat left center;padding-left: 30px;white-space: nowrap;}
+.boxAcct .boxAcct_left_t a{font-weight: normal;color: #1b77b6;}
+.boxAcct .boxAcct_img{background: url("images/service/sohaPay.png") no-repeat center center;height: 48px;width: 101px;float: left;margin: 20px 30px 0px 30px;}
+.boxAcct .boxImg{height: 85px;width: 162px;float: left;}
+.boxAcct .boxImg.onlineBg{background: url("images/service/sohaPay.png") no-repeat center center;padding-top: 15px;}
+.boxAcct .boxImg.codBg{background: url("images/service/goldPayCod.png") no-repeat center center;}
+.boxAcct .boxImg.rbHomeBg{background: url("images/service/goldPayRbhome.png") no-repeat center center;}
+.boxAcct .boxIntro{float: left;width: 570px;line-height: 22px;padding: 20px 0;color: #666;}
+.boxAcct .logoATMBank{height: 49px;width: 170px;float: left;margin: 23px 30px 0px 30px;}
+.boxAcct .boxAcct_cont{margin: 20px 0px 10px 0px; color: #676767;float:left;}
+.boxAcct .boxAcct_cont b{color: #464646}
+.boxAcct .boxAcct_cont i{padding-left: 40px;font-size: 11px}
+.boxAcct .boxAcct_cont ul.rowbank{margin-top: -6px;margin-left: 16px}
+.boxAcct .boxAcct_cont ul.rowbank li{color: #999999}
+.boxAcct .boxPackage{background:url("images/service/i.png") no-repeat left center;padding-left: 30px; font-size: 13px; margin-left: 3px;white-space: nowrap;}
+.boxAcct .font_normal b,.sub_infoItem li.labelInfo b{color: #F0BB28;}
+.boxAcct span.font_normal{font-weight: normal;padding-left: 5px;color: #676767}
+.boxAcct span.font_normal b{font-size: 15px}
+.boxAcct span.font_normal{font-weight: normal;padding-left: 5px;color: #666}
+.boxAcct .boxAcct_right_t{float: right;background: #eeeeee;padding: 2px 20px;border-radius: 3px;margin-right: 6px}
+.boxAcct div.contInfo{float: right}
+.boxAcct div.contInfo a.link_ext{padding-right: 0px;white-space: nowrap;}
+.boxAcct .contInfo_view{padding-top: 20px}
+td.tdPrice_sub label{cursor: inherit}
+.boxAcct .tbPriceUp td.tdPrice_sub:hover, .main-popup .tbPriceUp td.tdPrice_sub:hover{background: none;cursor: inherit}
+.boxAcct .tbPriceUp td.tdPrice b{float: left; padding-left: 30px;}
+.tbPriceUp_border td{border: 1px solid #ebebeb;border-collapse: collapse}
+.boxAcct .tbPriceUp td.tdPrice span{color: #999999;font-weight: normal;margin-top: -1px;}
+.boxAcct ul.sub_infoItem{float: left;width: 300px;margin-top: 22px;margin-bottom: 25px}
+.boxAcct ul.sub_infoItem li.labelInfo{color: #666;}
+.boxAcct .labelInfo .font_#f4597a,.font_#f4597a{color: #e44366;}
+.boxAcct_font {font-size:13px;border-bottom: 1px dashed #eeeeee;border-top: 1px dashed #eeeeee;text-align: right;color: #f4597a;padding-bottom: 0px;padding-right: 6px;height: 41px;line-height: 41px;margin-top: 0px}
+.boxAcct_bt{background: #ffffff; padding: 15px 0 0px 20px;}
+.boxAcct_bt label{padding-left: 10px;color: #999999; margin-bottom: 20px;}
+.body-popup #bottom-popup{padding-right:24px }
+/*.boxAcct_bottom .popup_img{background: url("images/service/exp.png") no-repeat top left;width: 723px;height: 553px}*/
+.body-popup #bottom-popup .buttonBuy{background: #f0b515;padding: 0px 14px;color: #ffffff;width: 120px;text-shadow: 1px 0px 0px #ccc}
+ul.infoItem li.labelInfo-note{background: url("images/service/advice.png") no-repeat left 6px;padding-left: 20px;padding-bottom: 5px;color: #222;font-style: italic}
+.body-popup #bottom-popup .buttonBuy{background: #f0b515;padding: 0px 14px;color: #ffffff;width: 125px;text-shadow: 1px 0px 0px #ccc; font-size: 13px;}
+ul.infoItem li.labelInfo-note{background: url("images/service/advice.png") no-repeat left 4px;padding-left: 20px;padding-bottom: 5px; font-style: italic; font-size: 12px; margin-left: 0 !important;}
+ul.infoItem-sub{margin-top: 12px;padding-bottom: 20px;height: 80px}
+ul.infoItem-sub li{background: url("images/service/checked.png") no-repeat left 6px;}
+ul.infoItem_sub{margin-top: 18px}
+ul.infoItem-sub{margin-top: 12px}
+ul.infoItem_sub li .labelInfo{width: 90%; font-size: 13px; color: #666;}
+ul.infoItem_sub li{margin-left: 27px}
+ul.infoItem_sub li div.labelInfo-note, .boxAcct span.font_normal_sub{color: #676767;margin-top: -1px}
+ul.infoItem-sub li.contInfo{margin-left: 13px;line-height: 21px;margin-bottom: 8px;color: #676767;}
+input.txt_item_vip{border: 1px solid #999; width: 70px; height: 18px; line-height: 18px; border-radius: 3px; padding: 2px; color: #333;}
+
+input.txt_item_vip{border: 1px solid #999; width: 70px; height: 18px; line-height: 18px; border-radius: 3px; padding: 2px; color: #333;}
+
+ul.infoItem-sub li.contInfo{margin-left: 13px;line-height: 21px;margin-bottom: 8px;color: #676767;}
+input.txt_item_vip{border: 1px solid #dedede; width: 70px; height: 18px; line-height: 18px; border-radius: 3px; padding: 2px; color: #555; font-size: 12px;}
+ul.infoItem-sub li.contInfo{margin-left: 13px;line-height: 21px;margin-bottom: 8px;color: #676767;}
+.blue_btn_service{
+    background-color: #1b77b6;color: #FFFFFF;cursor: pointer;display: block;float: left;font-size: 14px;font-weight: bold;overflow: hidden;text-align: center;
+}
+.grey_btn_service{
+    background-color: #dddddd;color: #333;cursor: pointer;display: block;float: left;font-size: 14px;font-weight: bold;overflow: hidden;text-align: center;}
+
+.bottom-popup {background: none repeat scroll 0 0 #F1F1F1;padding: 15px;}
+.bottom-popup .buttonBox{width: 100px;height: 30px;line-height: 30px;float: right;margin-left: 15px;border-radius: 3px;text-align: center;cursor: pointer;}
+.bottom-popup .buttonNext{background: #1b77b6;color: #fff;}
+.bottom-popup .buttonBack{background: #dddddd;color: #666;}
+.bottom-popup .buttonBuy{background: #f0b515;padding: 0px 14px;color: #ffffff;width: 125px;text-shadow: 1px 0px 0px #ccc; font-size: 13px;}
+.bottom-popup .buttonBox span{font-size: 16px;}
+
+.cl_red{
+    color: red !important;
+}
+#link_change_item_vip{
+    margin-right: 10px;
+}
+.error_buy_vip{
+    background: url("images/service/icon-alert.png") no-repeat scroll 7px 7px rgba(0, 0, 0, 0);padding: 10px 4px 0px 32px;color: red;font-size: 11px;display: none;
+}
+.fl_r{
+    float: right !important;
+}
+.mr_l_30{
+    margin-left: 30px !important;
+}
+.mr_t_5{
+    margin-top: 5px !important;
+}
+.item_up_show, .time_expire{
+    font-weight: bold;
+}
+p.info_acc{
+    background: url("images/service/info_acc.png") no-repeat; padding: 5px 30px; color: #333; font-weight: bold; margin-bottom: 10px;
+}
+.boxAcct .detail_info{
+    background: url("images/service/li_square.png") no-repeat scroll 0 2px rgba(0, 0, 0, 0);color: #999999;float: left;padding-left: 16px;width: 40%;
+}
+.boxAcct .detail_info a{
+    color:#2b85c1 !important;
+}
+.boxAcct .detail_info b{
+    color:#ee577a;
+}
+.boxAcct .lbl_assign{
+    display: block;float: left;line-height: 19px;width: 90px;
+}
+.boxAcct .ip_assign{
+    border: 1px solid #DEDEDE;border-radius: 3px;float: left;margin-left: 15px;padding: 10px;width: 510px;
+}
+.boxAcct .submit_blog{
+    background-color: #F0B81D;border-radius: 3px;color: #FFFFFF;float: left;font-weight: bold;margin-left: 10px;padding: 8px 19px 10px; font-size: 13px; cursor: pointer;
+}
+.area_info_item{
+    float: left;margin: 15px 0 0 82px;
+}
+.area_info_item span{
+    color: #666666;float: left;font-size: 11px;font-weight: normal;margin-left: 20px;padding: 0 0 0 28px;
+}
+.area_info_item .item_id{
+    background: url("images/service/icon_id.png") no-repeat scroll 2px 1px rgba(0, 0, 0, 0);
+}
+.area_info_item .item_post{
+    background: url("images/service/icon_date.png") no-repeat;
+}
+.area_info_item .item_view{
+    background: url("images/service/icon_view.png") no-repeat scroll 0 4px rgba(0, 0, 0, 0);
+}
+.area_info_item .item_title{
+    background: url("images/service/icon_title.png") no-repeat scroll 4px 2px rgba(0, 0, 0, 0); padding-left: 25px;
+}
+.area_info_item .item_cate{
+    background: url("images/service/icon_list.png") no-repeat scroll 0 5px rgba(0, 0, 0, 0);
+}
+.area_separated{
+    border-bottom: 1px solid #CBCBCB;float: left;height: 9px;margin-bottom: 20px;margin-left: 290px;margin-top: 25px;width: 160px;
+}
+.area_separated p{
+    background-color: #FFFFFF;color: #333333;float: left;font-size: 14px;font-weight: bold;margin-left: 52px;padding: 0 10px;
+}
+.area_list_item{
+    margin-top: 10px; padding-left: 15px; overflow: hidden; width: 735px;
+}
+.area_list_item .text_notice{
+    background: url("images/service/show_list.png") no-repeat scroll right 0 rgba(0, 0, 0, 0);float: left;padding-right: 25px;
+}
+.area_list_item .text_notice.active{
+    background: url("images/service/hide_list.png") no-repeat scroll right -1px rgba(0, 0, 0, 0);padding-right: 26px;
+}
+.area_list_item .title_list_blog{
+    background-color: #1B77B6;border-radius: 3px 3px 0 0;float: left;margin-top: 15px;padding: 10px 0;width: 99%;
+}
+.title_list_blog span{
+    color: #FFFFFF;float: left;font-size: 12px;padding: 0 10px;text-transform: uppercase;
+}
+.title_list_blog .sub_title{
+    width:475px; text-align:center;
+}
+table.content_pop_blog{
+    border-collapse: collapse; width: 727px;
+}
+table.content_pop_blog td{
+    border: 1px solid #d7d7d7;padding: 10px;
+}
+table.content_pop_blog a{
+    color: #333;
+}
+table.content_pop_blog a.buy_service_blog{
+    background-color: #B7B7B7;border-radius: 3px;color: #FFFFFF;padding: 5px 10px;text-transform: uppercase; font-size: 11px;
+}
+.width_75{
+    width: 82px;
+}
+p.notice_post_blog{
+    background: url("images/service/icon_notice_post.png") no-repeat;padding: 2px 25px; margin: 30px 0 10px 10px;
+}
+p.notice_post_blog a{
+    color: #1b77b6 !important; text-decoration: underline; font-weight: bold;
+}
+p.notice_want_post{
+    font-style: italic;padding: 5px 0; margin-left: 15px; margin-top: 20px;
+}
+p.notice_want_post a{
+    color: #1b77b6 !important; text-decoration: underline;
+}
+
+.more_info_recharing{color: #666; font-size: 13px; padding-left: 21px; margin-top:10px; line-height: 20px; background: url(images/service/advice.png) left 5px no-repeat; margin-left: 20px;}
+.link_direct,.link_direct:hover{background: url("images/ListItem/icon-tab-new1.png@v=9.999") no-repeat scroll 0 center;float: right;height: 22px;margin-right: 5px;width: 12px;}
+.link_direct:hover{background: url("images/ListItem/icon-tab-new2.png") no-repeat scroll 0 center}
+
+.bonus_new{
+    background: none !important;
+    padding: 0px !important;
+}
+.bonus_new .bonus_box_1{
+    font-size: 12px;
+    color: rgb( 51, 51, 51 );
+    line-height: 18px;
+    text-align: left;
+}
+.bonus_new .bonus_box_1 .text{
+    padding-left: 30px;
+    margin-top: 10px;
+    width: 645px;
+}
+.bonus_new .check_box{
+    border-width: 1px;
+    border-color: rgb( 225, 225, 225 );
+    border-style: solid;
+    border-radius: 8px;
+    background-color: rgb( 255, 255, 255 );
+    width: 16px;
+    height: 16px;
+    margin-right: 10px;
+    float: left;
+    cursor: pointer;
+}
+.bonus_new .check_box:hover{
+    background: url("images/check_box_bonus_VIP.png") no-repeat left 4px top 4px;
+}
+.bonus_new .active{
+    background: url("images/check_box_bonus_VIP.png") no-repeat left 4px top 4px;
+}
+.header-bike-top{padding:17px 17px 7px 17px;font-size: 12px;font-family: Arial, Tahoma, Verdana;width:678px}
+.header-bike-top .sub-cat-name, .Navication2 .sub-cat-name{font-weight: bold;font-size: 13px;color: #333;}
+.Navication2 .sub-cat-name{display: none;margin-bottom: 18px;}
+.header-bike-top .view-other-cat{color: #0966ac;cursor: pointer;background: #f6f7f9 url(images/arrow_blue1.gif) no-repeat 133px 11px;width: 150px;position: relative;border: 1px solid #c5dced;padding:6px;border-radius:3px;width: 136px;margin-right:8px;}
+.lbl-pcat-motobike{font-size: 13px;font-family: Arial, Tahoma, Verdana;width:65px;margin-top: 15px;font-weight: bold;color: #333;}
+.NavicationPCat{border: none; padding-left:15px ;}
+.NavicationPCat .Navication4{width:555px!important;}
+.border-bottom-filter-motobike{border-bottom: 1px dashed #ddd!important;}
+.NavicationPCat .Navication4 ul li{width:88px!important;}
+.NavicationPCat .Navication4 ul li.w70{width:80px!important;padding: 3px 0;}
+.fontsize12{font-size: 12px!important}
+.w55{width: 55px!important}

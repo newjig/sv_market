@@ -1,0 +1,229 @@
+clicked1 = false;
+function fn_click_chooseCityButton(value){
+    jQuery("#chooseCity").slideToggle("fast");
+    jQuery("#chooseCat").slideUp("fast");
+    jQuery("#chooseCatButton").removeClass("btnHmenuMoreCurrent").addClass("btnHmenuMore");
+    if (value.className == 'otherHover'){
+        jQuery(value).removeClass("otherHover").addClass("otherCurrent");
+        clicked1 = true;
+    }
+    else if (clicked1 == true){
+        jQuery(value).removeClass("otherCurrent").addClass("other");
+    }
+}
+
+function fn_over_chooseCatButton(value){
+    jQuery(value).addClass("btnHmenuMoreHover").removeClass("btnHmenuMore");
+}
+
+function fn_out_chooseCatButton(value){
+    jQuery(value).addClass("btnHmenuMore").removeClass("btnHmenuMoreHover");
+}
+
+function fn_over_chooseCityButton(value){
+    jQuery(value).addClass("otherHover").removeClass("other");
+}
+
+function fn_out_chooseCityButton(value){
+    jQuery(value).addClass("other").removeClass("otherHover");
+}
+
+function fn_click_boxClose(){	
+    //jQuery("img.boxClose").click(function () {
+    jQuery("#chooseCity").slideUp("fast");
+    jQuery("#chooseCat").slideUp("fast");
+    jQuery("#chooseCatButton").addClass("btnHmenuMore").removeClass("btnHmenuMoreCurrent");
+    jQuery("#chooseCityButton").removeClass("otherCurrent").addClass("other");
+//});
+}
+
+function fn_over_boxClose(value){
+    jQuery(value).css({
+        cursor:"pointer"
+    });
+}
+
+function fn_out_boxClose(value){
+    jQuery(value).css({
+        cursor:"none"
+    });
+}
+
+function fn_over_yahoo_sign(){
+    jQuery(".yahoo_logo").attr({
+        src: "style/images/head_signin_yahoo_hover.gif"
+    });
+}
+
+function fn_out_yahoo_sign(){
+    jQuery(".yahoo_logo").attr({
+        src: "style/images/head_signin_yahoo.gif"
+    });
+}
+
+function fn_over_City(value){
+    jQuery(value).addClass("CityHover").removeClass("City");
+}
+
+function fn_out_City(value){
+    jQuery(value).addClass("City").removeClass("CityHover");
+}
+
+function fn_new_mes(newMes,newComment,url){		
+    var strMess = '';
+    if(newMes >0 || newComment >0){
+        if(newMes>0 && newComment >0){
+            strMess += 'Bạn có <a href="'+WEB_DIR+'message.html">'+ newMes + ' tin nhắn</a> và <a href="'+WEB_DIR+'usercp.html@cmd=comment">' + newComment + ' phản hồi giao dịch </a> mới';
+        }
+        else if(newMes>0){
+            strMess += 'Bạn có <a href="'+WEB_DIR+'message.html">'+ newMes + ' tin nhắn</a> mới';
+        }
+        else if(newComment>0)
+        {
+            strMess += 'Bạn có <a href="'+WEB_DIR+'usercp.html@cmd=comment">' + newComment + ' phản hồi giao dịch</a> mới';
+        }
+
+		
+        jQuery.jGrowl(strMess,{
+            header: 'Thông báo!'
+        });
+    }
+    else{
+        return false;
+    }
+}
+
+/*Add by nhatvt - hien slidedown box thong bao*/
+jQuery(document).ready(function(){
+    var key_for_cookie = jQuery("#key_for_cookie").val();
+	var is_close = 0;
+	
+    if(jQuery.cookie && jQuery.cookie('close_thongbao_'+key_for_cookie) != null){
+		is_close = jQuery.cookie('close_thongbao_'+key_for_cookie);
+    }
+    
+    if (is_close == 0){
+        jQuery("#box-thongbao").show();
+	}
+});
+
+
+function close_thongbao(){
+    var key_for_cookie = jQuery("#key_for_cookie").val();
+    jQuery("#box-thongbao").hide();
+    jQuery.cookie('close_thongbao_'+key_for_cookie,1,{expires: 100000});
+}
+
+function show_select_post_job(catid)
+{
+    jQuery("#ad_cat_id").val(0);
+    var html = '';
+    html += '<div id="cart-check-out-step1" style="margin:0 auto;width:500px;text-align:left">\
+                        <div style="background-color: transparent;">\
+                            <div style="padding: 0px; color: black; font-size: 12px; height: auto; display: block;" id="popup-container">\
+                                <div class="classic-popup_eb">\
+                                    <div class="classic-popup-top_eb">\
+                                        <div class="right_eb">\
+                                            <div class="bg_eb"></div>\
+                                        </div>\
+                                    </div>\
+                                    <div class="classic-popup-main_eb">\
+                                        <div class="class-popup-title-cf">\
+                                            <div class="class-popup-title-m">\
+                                                <div class="fl_eb">Bạn muốn?</div>\
+                                                <a onclick="pay_cancel();" title="Đóng" class="class-popup-close-cf" href="javascript:void(0)">x</a>\
+                                                <div class="c_eb"></div>\
+                                            </div>\
+                                        </div>\
+                                    </div>\
+                                    <div class="classic-popup-content_eb">\
+                                        <div class="content_eb" style="padding:0">\
+                                            <div class="content" style="padding:0;">\
+                                                <div class="bt_sl_job bt_sl_job_sear" onclick="window.location= \''+WEB_DIR + "dang_tin_rao_vat.html"+'\'"><span class="arr_sl_bt arr_sl_sear"></span>Đăng tin dành cho người tìm việc</div>\
+                                                <div class="bt_sl_job bt_sl_job_recr"  onclick="window.location= \''+WEB_DIR + "dang_tin_rao_vat.html"+'\'"><span class="arr_sl_bt arr_sl_recr"></span>Đăng tin dành cho nhà tuyển dụng</div>\
+                                            </div>\
+                                        </div>\
+                                    </div>\
+                                    <div class="classic-popup-bottom_eb">\
+                                        <div class="right_eb">\
+                                            <div class="bg_eb"></div>\
+                                        </div>\
+                                    </div>\
+                                </div>\
+                            </div>\
+                        </div>\
+                    </div>';
+
+    pay_popup(html);
+}
+
+function selectCatJob(job_cat_id, cat_id) {
+    //var nc = (cat_id==69)?84:186;
+    var html = '';
+    html += '<div id="cart-check-out-step1" style="margin:100px auto;width:500px;text-align:left;">\
+                        <div style="background-color: transparent;">\
+                            <div style="padding: 0px; color: black; font-size: 12px; height: auto; display: block;" id="popup-container">\
+                                <div class="classic-popup_eb">\
+                                    <div class="classic-popup-top_eb">\
+                                        <div class="right_eb">\
+                                            <div class="bg_eb"></div>\
+                                        </div>\
+                                    </div>\
+                                    <div class="classic-popup-main_eb">\
+                                        <div class="class-popup-title-cf">\
+                                            <div class="class-popup-title-m">\
+                                                <div class="fl_eb">Bạn muốn?</div>\
+                                                <a onclick="pay_cancel();" title="Đóng" class="class-popup-close-cf" href="javascript:void(0)">x</a>\
+                                                <div class="c_eb"></div>\
+                                            </div>\
+                                        </div>\
+                                    </div>\
+                                    <div class="classic-popup-content_eb">\
+                                        <div class="content_eb" style="padding:0">\
+                                            <div class="content" style="padding:0;">\
+                                                <div class="bt_sl_job bt_sl_job_sear" onclick="onSelectCatJob('+job_cat_id+','+cat_id+',1)"><div class="arr_sl_sear"></div><div class="bt_sl_text">Xem tin dành cho người tìm việc</div></div>\
+                                                <div class="bt_sl_job bt_sl_job_recr"  onclick="onSelectCatJob('+job_cat_id+','+cat_id+',2)"><div class="arr_sl_recr"></div><div class="bt_sl_text">Xem tin dành cho nhà tuyển dụng</div></div>\
+                                                <!--<a href="dang_tin_tuyen_dung.html" class="btView forPostItem">Đăng tin tuyển dụng</a><br>-->\
+                                            </div>\
+                                        </div>\
+                                    </div>\
+                                    <div class="classic-popup-bottom_eb">\
+                                        <div class="right_eb">\
+                                            <div class="bg_eb"></div>\
+                                        </div>\
+                                    </div>\
+                                </div>\
+                            </div>\
+                        </div>\
+                    </div>';
+
+    pay_popup(html);
+}
+
+function onSelectCatJob(job_cat_id, cat_id, type) {
+    jQuery.ajax({
+        type: "POST",
+        url: WEB_DIR+"ajax.php@act=item&code=view_item_by_job",
+        data: {type:type, job_cat_id:job_cat_id, cat_id:cat_id},
+        dataType: 'json',
+        success: function(data)
+        {
+            document.location = data.url;
+        }
+    });
+}
+
+function hideFormEmail(type) {
+    if (type==1) {
+        //Thực hiện đóng
+        jQuery('#header_top_notice').hide();
+        jQuery('#btnClose2').show();
+        shop.cookie.set('showNotice', 'not');
+    }
+    else if (type==0) {
+        //Thực hiện mở
+        jQuery('#header_top_notice').show();
+        jQuery('#btnClose2').hide();
+        shop.cookie.set('showNotice', 'yes');
+    }
+}
